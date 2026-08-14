@@ -1,0 +1,671 @@
+{
+  "_synthetic": true,
+  "_note": "All entities in this file are fictional and generated for the AP Intelligence Graph prototype. No real client, creator, or publisher data is represented.",
+  "clients": [
+    {
+      "id": "aurora_fitco",
+      "name": "Aurora FitCo",
+      "industry": "activewear",
+      "growth_stage": "scaling"
+    },
+    {
+      "id": "coastal_kitchen",
+      "name": "Coastal Kitchen Co.",
+      "industry": "home & kitchen",
+      "growth_stage": "mature"
+    },
+    {
+      "id": "pinehollow_supply",
+      "name": "Pinehollow Supply",
+      "industry": "outdoor apparel",
+      "growth_stage": "scaling"
+    },
+    {
+      "id": "verdant_skincare",
+      "name": "Verdant Skincare",
+      "industry": "beauty",
+      "growth_stage": "early_growth"
+    },
+    {
+      "id": "haulwell_gear",
+      "name": "Haulwell Gear",
+      "industry": "outdoor apparel",
+      "growth_stage": "mature"
+    }
+  ],
+  "creators": [
+    {
+      "id": "ridgeline_rae",
+      "name": "Ridgeline Rae",
+      "platform": "Instagram",
+      "category": "outdoor"
+    },
+    {
+      "id": "basecamp_bri",
+      "name": "Basecamp Bri",
+      "platform": "YouTube",
+      "category": "outdoor"
+    },
+    {
+      "id": "fitwith_farah",
+      "name": "Fit With Farah",
+      "platform": "TikTok",
+      "category": "activewear"
+    },
+    {
+      "id": "kettle_and_kin",
+      "name": "Kettle & Kin",
+      "platform": "Instagram",
+      "category": "home & kitchen"
+    },
+    {
+      "id": "glowlab_gigi",
+      "name": "Glowlab Gigi",
+      "platform": "TikTok",
+      "category": "beauty"
+    },
+    {
+      "id": "trailmix_theo",
+      "name": "Trailmix Theo",
+      "platform": "YouTube",
+      "category": "outdoor"
+    },
+    {
+      "id": "summit_and_sea",
+      "name": "Summit & Sea",
+      "platform": "Instagram",
+      "category": "outdoor"
+    },
+    {
+      "id": "campfire_cara",
+      "name": "Campfire Cara",
+      "platform": "TikTok",
+      "category": "outdoor"
+    },
+    {
+      "id": "pantry_paloma",
+      "name": "Pantry Paloma",
+      "platform": "Instagram",
+      "category": "home & kitchen"
+    },
+    {
+      "id": "dermdaily_dee",
+      "name": "DermDaily Dee",
+      "platform": "TikTok",
+      "category": "beauty"
+    },
+    {
+      "id": "peaklife_priya",
+      "name": "PeakLife Priya",
+      "platform": "YouTube",
+      "category": "activewear"
+    },
+    {
+      "id": "wanderwell_wes",
+      "name": "Wanderwell Wes",
+      "platform": "Instagram",
+      "category": "outdoor"
+    }
+  ],
+  "team_members": [
+    {
+      "id": "jessica_moreno",
+      "name": "Jessica Moreno",
+      "role": "Senior Account Director"
+    },
+    {
+      "id": "derek_holt",
+      "name": "Derek Holt",
+      "role": "Account Manager"
+    },
+    {
+      "id": "priya_nair",
+      "name": "Priya Nair",
+      "role": "Account Manager"
+    },
+    {
+      "id": "sam_okafor",
+      "name": "Sam Okafor",
+      "role": "Associate Account Manager"
+    },
+    {
+      "id": "lena_bui",
+      "name": "Lena Bui",
+      "role": "Partnerships Lead"
+    },
+    {
+      "id": "marcus_webb",
+      "name": "Marcus Webb",
+      "role": "Account Director"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "pf_dec_001",
+      "client_id": "haulwell_gear",
+      "creator_id": "trailmix_theo",
+      "decided_by": "lena_bui",
+      "date": "2025-07",
+      "compensation_structure": "flat_fee_renewal",
+      "reason": "client wanted lower fixed cost exposure after a soft quarter",
+      "outcome": "positive",
+      "outcome_detail": "verified revenue exceeded the prior period and cost efficiency improved"
+    },
+    {
+      "id": "pf_dec_002",
+      "client_id": "coastal_kitchen",
+      "creator_id": "glowlab_gigi",
+      "decided_by": "jessica_moreno",
+      "date": "2025-08",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "client wanted lower fixed cost exposure after a soft quarter",
+      "outcome": "negative",
+      "outcome_detail": "client reverted to flat-fee for the next cycle"
+    },
+    {
+      "id": "pf_dec_003",
+      "client_id": "pinehollow_supply",
+      "creator_id": "campfire_cara",
+      "decided_by": "marcus_webb",
+      "date": "2025-12",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "creator had two consecutive strong content cycles with growing audience",
+      "outcome": "positive",
+      "outcome_detail": "engagement and conversion both improved versus the flat-fee baseline"
+    },
+    {
+      "id": "pf_dec_004",
+      "client_id": "pinehollow_supply",
+      "creator_id": "kettle_and_kin",
+      "decided_by": "marcus_webb",
+      "date": "2025-09",
+      "compensation_structure": "flat_fee_renewal",
+      "reason": "client wanted lower fixed cost exposure after a soft quarter",
+      "outcome": "positive",
+      "outcome_detail": "new-customer share of attributed revenue increased materially"
+    },
+    {
+      "id": "pf_dec_005",
+      "client_id": "haulwell_gear",
+      "creator_id": "wanderwell_wes",
+      "decided_by": "derek_holt",
+      "date": "2025-06",
+      "compensation_structure": "flat_fee_renewal",
+      "reason": "commerce performance was promising but not yet verified independently",
+      "outcome": "positive",
+      "outcome_detail": "client renewed again the following cycle citing efficiency gains"
+    },
+    {
+      "id": "pf_dec_006",
+      "client_id": "pinehollow_supply",
+      "creator_id": "peaklife_priya",
+      "decided_by": "marcus_webb",
+      "date": "2026-06",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "attribution confidence was uncertain due to shared promo-code usage",
+      "outcome": "positive",
+      "outcome_detail": "engagement and conversion both improved versus the flat-fee baseline"
+    },
+    {
+      "id": "pf_dec_007",
+      "client_id": "aurora_fitco",
+      "creator_id": "kettle_and_kin",
+      "decided_by": "jessica_moreno",
+      "date": "2025-11",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "creator requested a rate increase the client wanted to de-risk",
+      "outcome": "positive",
+      "outcome_detail": "engagement and conversion both improved versus the flat-fee baseline"
+    },
+    {
+      "id": "pf_dec_008",
+      "client_id": "aurora_fitco",
+      "creator_id": "kettle_and_kin",
+      "decided_by": "lena_bui",
+      "date": "2025-11",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "attribution confidence was uncertain due to shared promo-code usage",
+      "outcome": "positive",
+      "outcome_detail": "client renewed again the following cycle citing efficiency gains"
+    },
+    {
+      "id": "pf_dec_009",
+      "client_id": "verdant_skincare",
+      "creator_id": "peaklife_priya",
+      "decided_by": "sam_okafor",
+      "date": "2025-05",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "client's objective shifted toward new-customer acquisition",
+      "outcome": "negative",
+      "outcome_detail": "attribution remained ambiguous and the client paused the relationship"
+    },
+    {
+      "id": "pf_dec_010",
+      "client_id": "coastal_kitchen",
+      "creator_id": "wanderwell_wes",
+      "decided_by": "lena_bui",
+      "date": "2026-06",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "client's objective shifted toward new-customer acquisition",
+      "outcome": "positive",
+      "outcome_detail": "client renewed again the following cycle citing efficiency gains"
+    },
+    {
+      "id": "pf_dec_011",
+      "client_id": "haulwell_gear",
+      "creator_id": "summit_and_sea",
+      "decided_by": "priya_nair",
+      "date": "2025-08",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "creator had two consecutive strong content cycles with growing audience",
+      "outcome": "positive",
+      "outcome_detail": "client renewed again the following cycle citing efficiency gains"
+    },
+    {
+      "id": "pf_dec_012",
+      "client_id": "aurora_fitco",
+      "creator_id": "ridgeline_rae",
+      "decided_by": "jessica_moreno",
+      "date": "2025-05",
+      "compensation_structure": "flat_fee_renewal",
+      "reason": "creator had two consecutive strong content cycles with growing audience",
+      "outcome": "positive",
+      "outcome_detail": "client renewed again the following cycle citing efficiency gains"
+    },
+    {
+      "id": "pf_dec_013",
+      "client_id": "haulwell_gear",
+      "creator_id": "basecamp_bri",
+      "decided_by": "sam_okafor",
+      "date": "2026-01",
+      "compensation_structure": "flat_fee_renewal",
+      "reason": "commerce performance was promising but not yet verified independently",
+      "outcome": "negative",
+      "outcome_detail": "engagement held but conversion did not improve versus baseline"
+    },
+    {
+      "id": "pf_dec_014",
+      "client_id": "haulwell_gear",
+      "creator_id": "ridgeline_rae",
+      "decided_by": "marcus_webb",
+      "date": "2025-04",
+      "compensation_structure": "flat_fee_renewal",
+      "reason": "client's objective shifted toward new-customer acquisition",
+      "outcome": "positive",
+      "outcome_detail": "engagement and conversion both improved versus the flat-fee baseline"
+    },
+    {
+      "id": "pf_dec_015",
+      "client_id": "aurora_fitco",
+      "creator_id": "glowlab_gigi",
+      "decided_by": "sam_okafor",
+      "date": "2025-06",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "commerce performance was promising but not yet verified independently",
+      "outcome": "negative",
+      "outcome_detail": "performance bonus was not earned; verified revenue came in below target"
+    },
+    {
+      "id": "pf_dec_016",
+      "client_id": "pinehollow_supply",
+      "creator_id": "pantry_paloma",
+      "decided_by": "derek_holt",
+      "date": "2026-05",
+      "compensation_structure": "flat_fee_renewal",
+      "reason": "client wanted lower fixed cost exposure after a soft quarter",
+      "outcome": "positive",
+      "outcome_detail": "engagement and conversion both improved versus the flat-fee baseline"
+    },
+    {
+      "id": "pf_dec_017",
+      "client_id": "haulwell_gear",
+      "creator_id": "dermdaily_dee",
+      "decided_by": "derek_holt",
+      "date": "2025-05",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "prior flat-fee renewal underperformed relative to cost",
+      "outcome": "positive",
+      "outcome_detail": "new-customer share of attributed revenue increased materially"
+    },
+    {
+      "id": "pf_dec_018",
+      "client_id": "haulwell_gear",
+      "creator_id": "pantry_paloma",
+      "decided_by": "jessica_moreno",
+      "date": "2025-11",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "commerce performance was promising but not yet verified independently",
+      "outcome": "negative",
+      "outcome_detail": "performance bonus was not earned; verified revenue came in below target"
+    },
+    {
+      "id": "pf_dec_019",
+      "client_id": "aurora_fitco",
+      "creator_id": "trailmix_theo",
+      "decided_by": "priya_nair",
+      "date": "2025-08",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "prior campaign showed repeated engagement lift but flat conversion",
+      "outcome": "positive",
+      "outcome_detail": "new-customer share of attributed revenue increased materially"
+    },
+    {
+      "id": "pf_dec_020",
+      "client_id": "haulwell_gear",
+      "creator_id": "basecamp_bri",
+      "decided_by": "jessica_moreno",
+      "date": "2026-04",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "client wanted lower fixed cost exposure after a soft quarter",
+      "outcome": "positive",
+      "outcome_detail": "new-customer share of attributed revenue increased materially"
+    },
+    {
+      "id": "pf_dec_021",
+      "client_id": "coastal_kitchen",
+      "creator_id": "peaklife_priya",
+      "decided_by": "sam_okafor",
+      "date": "2026-06",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "creator had two consecutive strong content cycles with growing audience",
+      "outcome": "negative",
+      "outcome_detail": "engagement held but conversion did not improve versus baseline"
+    },
+    {
+      "id": "pf_dec_022",
+      "client_id": "haulwell_gear",
+      "creator_id": "dermdaily_dee",
+      "decided_by": "sam_okafor",
+      "date": "2025-07",
+      "compensation_structure": "flat_fee_renewal",
+      "reason": "attribution confidence was uncertain due to shared promo-code usage",
+      "outcome": "positive",
+      "outcome_detail": "engagement and conversion both improved versus the flat-fee baseline"
+    },
+    {
+      "id": "pf_dec_023",
+      "client_id": "verdant_skincare",
+      "creator_id": "peaklife_priya",
+      "decided_by": "marcus_webb",
+      "date": "2025-12",
+      "compensation_structure": "flat_fee_renewal",
+      "reason": "commerce performance was promising but not yet verified independently",
+      "outcome": "positive",
+      "outcome_detail": "client renewed again the following cycle citing efficiency gains"
+    },
+    {
+      "id": "pf_dec_024",
+      "client_id": "aurora_fitco",
+      "creator_id": "kettle_and_kin",
+      "decided_by": "derek_holt",
+      "date": "2025-03",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "prior flat-fee renewal underperformed relative to cost",
+      "outcome": "negative",
+      "outcome_detail": "performance bonus was not earned; verified revenue came in below target"
+    },
+    {
+      "id": "pf_dec_025",
+      "client_id": "haulwell_gear",
+      "creator_id": "pantry_paloma",
+      "decided_by": "derek_holt",
+      "date": "2026-07",
+      "compensation_structure": "flat_fee_renewal",
+      "reason": "attribution confidence was uncertain due to shared promo-code usage",
+      "outcome": "positive",
+      "outcome_detail": "verified revenue exceeded the prior period and cost efficiency improved"
+    },
+    {
+      "id": "pf_dec_026",
+      "client_id": "aurora_fitco",
+      "creator_id": "wanderwell_wes",
+      "decided_by": "marcus_webb",
+      "date": "2025-02",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "attribution confidence was uncertain due to shared promo-code usage",
+      "outcome": "negative",
+      "outcome_detail": "performance bonus was not earned; verified revenue came in below target"
+    },
+    {
+      "id": "pf_dec_027",
+      "client_id": "aurora_fitco",
+      "creator_id": "trailmix_theo",
+      "decided_by": "jessica_moreno",
+      "date": "2026-05",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "attribution confidence was uncertain due to shared promo-code usage",
+      "outcome": "positive",
+      "outcome_detail": "engagement and conversion both improved versus the flat-fee baseline"
+    },
+    {
+      "id": "pf_dec_028",
+      "client_id": "verdant_skincare",
+      "creator_id": "kettle_and_kin",
+      "decided_by": "lena_bui",
+      "date": "2025-05",
+      "compensation_structure": "flat_fee_renewal",
+      "reason": "commerce performance was promising but not yet verified independently",
+      "outcome": "negative",
+      "outcome_detail": "attribution remained ambiguous and the client paused the relationship"
+    },
+    {
+      "id": "pf_dec_029",
+      "client_id": "verdant_skincare",
+      "creator_id": "summit_and_sea",
+      "decided_by": "derek_holt",
+      "date": "2025-04",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "client wanted lower fixed cost exposure after a soft quarter",
+      "outcome": "negative",
+      "outcome_detail": "client reverted to flat-fee for the next cycle"
+    },
+    {
+      "id": "pf_dec_030",
+      "client_id": "pinehollow_supply",
+      "creator_id": "summit_and_sea",
+      "decided_by": "sam_okafor",
+      "date": "2026-03",
+      "compensation_structure": "hybrid_base_plus_performance",
+      "reason": "prior campaign showed repeated engagement lift but flat conversion",
+      "outcome": "positive",
+      "outcome_detail": "verified revenue exceeded the prior period and cost efficiency improved"
+    },
+    {
+      "id": "pf_dec_031",
+      "client_id": "aurora_fitco",
+      "creator_id": "summit_and_sea",
+      "decided_by": "marcus_webb",
+      "date": "2025-11",
+      "compensation_structure": "flat_fee_renewal",
+      "reason": "client wanted lower fixed cost exposure after a soft quarter",
+      "outcome": "positive",
+      "outcome_detail": "new-customer share of attributed revenue increased materially"
+    }
+  ],
+  "relationship_memories": [
+    {
+      "id": "pf_mem_rel_001",
+      "team_member_id": "derek_holt",
+      "creator_id": "kettle_and_kin",
+      "predicate": "relationship_owner",
+      "value": "Derek Holt is the primary AP relationship owner for Kettle & Kin."
+    },
+    {
+      "id": "pf_mem_rel_002",
+      "team_member_id": "derek_holt",
+      "creator_id": "summit_and_sea",
+      "predicate": "placement_requirement",
+      "value": "Summit & Sea historically requires premium placement guarantees before agreeing to renew."
+    },
+    {
+      "id": "pf_mem_rel_003",
+      "team_member_id": "priya_nair",
+      "creator_id": "campfire_cara",
+      "predicate": "placement_requirement",
+      "value": "Campfire Cara historically requires premium placement guarantees before agreeing to renew."
+    },
+    {
+      "id": "pf_mem_rel_004",
+      "team_member_id": "jessica_moreno",
+      "creator_id": "campfire_cara",
+      "predicate": "negotiation_history",
+      "value": "Jessica Moreno has negotiated with Campfire Cara on 2 prior occasions."
+    },
+    {
+      "id": "pf_mem_rel_005",
+      "team_member_id": "marcus_webb",
+      "creator_id": "pantry_paloma",
+      "predicate": "negotiation_history",
+      "value": "Marcus Webb has negotiated with Pantry Paloma on 2 prior occasions."
+    },
+    {
+      "id": "pf_mem_rel_006",
+      "team_member_id": "derek_holt",
+      "creator_id": "fitwith_farah",
+      "predicate": "relationship_owner",
+      "value": "Derek Holt is the primary AP relationship owner for Fit With Farah."
+    },
+    {
+      "id": "pf_mem_rel_007",
+      "team_member_id": "sam_okafor",
+      "creator_id": "campfire_cara",
+      "predicate": "placement_requirement",
+      "value": "Campfire Cara historically requires premium placement guarantees before agreeing to renew."
+    },
+    {
+      "id": "pf_mem_rel_008",
+      "team_member_id": "sam_okafor",
+      "creator_id": "ridgeline_rae",
+      "predicate": "placement_requirement",
+      "value": "Ridgeline Rae historically requires premium placement guarantees before agreeing to renew."
+    },
+    {
+      "id": "pf_mem_rel_009",
+      "team_member_id": "sam_okafor",
+      "creator_id": "glowlab_gigi",
+      "predicate": "relationship_owner",
+      "value": "Sam Okafor is the primary AP relationship owner for Glowlab Gigi."
+    },
+    {
+      "id": "pf_mem_rel_010",
+      "team_member_id": "priya_nair",
+      "creator_id": "summit_and_sea",
+      "predicate": "relationship_owner",
+      "value": "Priya Nair is the primary AP relationship owner for Summit & Sea."
+    },
+    {
+      "id": "pf_mem_rel_011",
+      "team_member_id": "priya_nair",
+      "creator_id": "kettle_and_kin",
+      "predicate": "negotiation_history",
+      "value": "Priya Nair has negotiated with Kettle & Kin on 4 prior occasions."
+    },
+    {
+      "id": "pf_mem_rel_012",
+      "team_member_id": "jessica_moreno",
+      "creator_id": "wanderwell_wes",
+      "predicate": "responsiveness",
+      "value": "Wanderwell Wes typically responds within 48 hours and prefers structured performance offers."
+    },
+    {
+      "id": "pf_mem_rel_013",
+      "team_member_id": "jessica_moreno",
+      "creator_id": "ridgeline_rae",
+      "predicate": "relationship_owner",
+      "value": "Jessica Moreno is the primary AP relationship owner for Ridgeline Rae."
+    },
+    {
+      "id": "pf_mem_rel_014",
+      "team_member_id": "lena_bui",
+      "creator_id": "pantry_paloma",
+      "predicate": "placement_requirement",
+      "value": "Pantry Paloma historically requires premium placement guarantees before agreeing to renew."
+    }
+  ],
+  "patterns": [
+    {
+      "id": "pattern_hybrid_comp",
+      "name": "hybrid_beats_flat_fee_under_attribution_uncertainty",
+      "predicate": "preferred_compensation_pattern",
+      "value": "hybrid_base_plus_performance",
+      "description": "Hybrid creator compensation (base + performance) has outperformed flat-fee renewal in comparable creator-renewal decisions where prior commerce performance was promising but attribution confidence was uncertain.",
+      "evidence_count": 31,
+      "positive_outcomes": 21,
+      "flat_fee_success_rate": 0.41,
+      "hybrid_success_rate": 0.68,
+      "strongest_conditions": [
+        "repeated prior performance",
+        "new-customer objective",
+        "controlled promo-code distribution",
+        "verified performance outcome"
+      ],
+      "status": "approved_portfolio_pattern",
+      "supporting_decision_ids": [
+        "pf_dec_001",
+        "pf_dec_002",
+        "pf_dec_003",
+        "pf_dec_004",
+        "pf_dec_005",
+        "pf_dec_006",
+        "pf_dec_007",
+        "pf_dec_008",
+        "pf_dec_009",
+        "pf_dec_010",
+        "pf_dec_011",
+        "pf_dec_012",
+        "pf_dec_013",
+        "pf_dec_014",
+        "pf_dec_015",
+        "pf_dec_016",
+        "pf_dec_017",
+        "pf_dec_018",
+        "pf_dec_019",
+        "pf_dec_020",
+        "pf_dec_021",
+        "pf_dec_022",
+        "pf_dec_023",
+        "pf_dec_024",
+        "pf_dec_025",
+        "pf_dec_026",
+        "pf_dec_027",
+        "pf_dec_028",
+        "pf_dec_029",
+        "pf_dec_030",
+        "pf_dec_031"
+      ]
+    },
+    {
+      "id": "pattern_bfcm_placement",
+      "name": "bfcm_paid_placement_uplift",
+      "predicate": "seasonal_placement_pattern",
+      "value": "bfcm_paid_placements_outperform_baseline",
+      "description": "Paid placements booked with top affiliate publishers during BFCM have shown outsized revenue uplift versus the prior-month baseline across the portfolio.",
+      "evidence_count": 9,
+      "positive_outcomes": 7,
+      "flat_fee_success_rate": null,
+      "hybrid_success_rate": null,
+      "strongest_conditions": [
+        "publisher already has an established relationship",
+        "placement booked at least 3 weeks before BFCM"
+      ],
+      "status": "candidate_pattern",
+      "supporting_decision_ids": []
+    },
+    {
+      "id": "pattern_coupon_concentration_risk",
+      "name": "coupon_concentration_margin_risk",
+      "predicate": "coupon_dependence_risk",
+      "value": "high_coupon_concentration_correlates_with_margin_erosion",
+      "description": "Clients with high revenue concentration in coupon/loyalty publishers have shown gradual margin erosion versus clients with a more diversified publisher mix, across the portfolio.",
+      "evidence_count": 6,
+      "positive_outcomes": null,
+      "flat_fee_success_rate": null,
+      "hybrid_success_rate": null,
+      "strongest_conditions": [
+        "coupon/loyalty share of attributed revenue above 40%"
+      ],
+      "status": "candidate_pattern",
+      "supporting_decision_ids": []
+    }
+  ]
+}

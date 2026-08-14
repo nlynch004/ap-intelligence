@@ -1,0 +1,142 @@
+{
+  "_note": "Values below are transcribed directly from the supplied 'Case Study Data Pack - Director of Applied AI_July 2026.xlsx'. Northwind Outfitters and all figures are synthetic per the data pack's own disclosure, but this is the case-study's real/current-client data layer as distinct from the fictional cross-client portfolio in synthetic_portfolio.json.",
+  "client": {
+    "id": "northwind",
+    "name": "Northwind Outfitters",
+    "industry": "outdoor apparel"
+  },
+  "team_members": [
+    {"id": "jessica_moreno", "name": "Jessica Moreno", "role": "Senior Account Director", "manages_client_id": "northwind"}
+  ],
+  "creators": [
+    {
+      "id": "summit_sisters",
+      "name": "Summit Sisters",
+      "platform": "Instagram",
+      "follower_tier": "Mid",
+      "promo_code": "SUMMIT20",
+      "relationship_status": "existing_creator_partner"
+    },
+    {
+      "id": "trail_with_tessa",
+      "name": "Trail With Tessa",
+      "platform": "TikTok",
+      "follower_tier": "Micro",
+      "promo_code": "TESSA10",
+      "relationship_status": "existing_creator_partner"
+    }
+  ],
+  "publishers": [
+    {
+      "id": "couponcloud",
+      "name": "CouponCloud",
+      "network": "Impact",
+      "publisher_type": "Coupon"
+    }
+  ],
+  "campaigns": [
+    {
+      "id": "camp_summit_2025_09",
+      "creator_id": "summit_sisters",
+      "month": "2025-09",
+      "deliverables": "2 reels + stories",
+      "flat_fee": 4000,
+      "impressions": 412000,
+      "engagements": 38500,
+      "link_clicks": 880,
+      "code_redemptions": 255,
+      "attributed_revenue": 9840
+    },
+    {
+      "id": "camp_summit_2026_02",
+      "creator_id": "summit_sisters",
+      "month": "2026-02",
+      "deliverables": "2 reels + stories",
+      "flat_fee": 4000,
+      "impressions": 398000,
+      "engagements": 35100,
+      "link_clicks": 905,
+      "code_redemptions": 268,
+      "attributed_revenue": 10120
+    },
+    {
+      "id": "camp_summit_2026_05",
+      "creator_id": "summit_sisters",
+      "month": "2026-05",
+      "deliverables": "2 reels + stories",
+      "flat_fee": 4200,
+      "impressions": 405000,
+      "engagements": 36400,
+      "link_clicks": 385,
+      "code_redemptions": 1847,
+      "attributed_revenue": 31240,
+      "note": "Strongest attributed-revenue result, but redemptions (1,847) far exceed tracked link clicks (385) - flagged as an attribution hypothesis, not a verified causal result."
+    },
+    {
+      "id": "camp_tessa_2026_05",
+      "creator_id": "trail_with_tessa",
+      "month": "2026-05",
+      "deliverables": "3 videos",
+      "flat_fee": 2800,
+      "impressions": 237029,
+      "engagements": 26784,
+      "link_clicks": 1604,
+      "code_redemptions": 210,
+      "attributed_revenue": 18098.77
+    }
+  ],
+  "affiliate_snapshot": [
+    {
+      "publisher_id": "couponcloud",
+      "month": "2025-07",
+      "clicks": 56247,
+      "conversions": 3156,
+      "revenue": 265075.14,
+      "commission_paid": 13253.76
+    }
+  ],
+  "seed_memories": [
+    {
+      "id": "mem_northwind_strategy_coupon",
+      "type": "client_preference",
+      "subject_type": "client",
+      "subject_id": "northwind",
+      "predicate": "partnership_strategy",
+      "value": "aggressively_grow_coupon_partnerships",
+      "claim_class": "verified_fact",
+      "confidence": 0.9,
+      "authority_score": 0.85,
+      "source": {"type": "account_team_statement", "source_id": "seed", "speaker": "account_director"},
+      "valid_from": "2026-01-01",
+      "status": "active"
+    },
+    {
+      "id": "mem_summit_relationship",
+      "type": "relationship_memory",
+      "subject_type": "creator",
+      "subject_id": "summit_sisters",
+      "predicate": "relationship_status",
+      "value": "existing_creator_partner",
+      "claim_class": "verified_fact",
+      "confidence": 0.98,
+      "authority_score": 0.95,
+      "source": {"type": "structured_system_of_record", "source_id": "data_pack", "speaker": null},
+      "valid_from": "2025-09-01",
+      "status": "active"
+    },
+    {
+      "id": "mem_jessica_summit_history",
+      "type": "relationship_memory",
+      "subject_type": "creator",
+      "subject_id": "summit_sisters",
+      "predicate": "negotiation_history",
+      "value": "Jessica Moreno has negotiated terms with Summit Sisters across all 3 prior campaigns.",
+      "claim_class": "historical_observation",
+      "confidence": 0.92,
+      "authority_score": 0.85,
+      "source": {"type": "account_team_annotation", "source_id": "seed", "speaker": "jessica_moreno"},
+      "valid_from": "2026-05-15",
+      "status": "active"
+    }
+  ]
+}
