@@ -14,10 +14,17 @@ class LLMProvider(ABC):
     name: str = "base"
 
     @abstractmethod
-    def extract_claims(self, message: str, client_id: str, client_name: str) -> list[dict[str, Any]]:
+    def extract_claims(
+        self, message: str, client_id: str, client_name: str, known_predicates: list[str] | None = None
+    ) -> list[dict[str, Any]]:
         """Return candidate claim dicts shaped like CandidateClaimPayload.
         Should return an empty list for messages that contain no durable,
         structured, client-relevant fact (do not force claims out of chatter).
+
+        `known_predicates` lists the predicate names already active for this
+        client's claims - implementations should be steered to reuse an exact
+        match when applicable, since conflict detection downstream is a
+        deterministic exact-string match, not semantic (spec Sec.11).
         """
 
     @abstractmethod

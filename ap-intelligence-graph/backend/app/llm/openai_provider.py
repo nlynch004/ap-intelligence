@@ -35,8 +35,15 @@ class OpenAIProvider(LLMProvider):
         )
         return json.loads(resp.choices[0].message.content)
 
-    def extract_claims(self, message: str, client_id: str, client_name: str) -> list[dict[str, Any]]:
-        user_prompt = f"client_id: {client_id}\nclient_name: {client_name}\nmessage: {message}"
+    def extract_claims(
+        self, message: str, client_id: str, client_name: str, known_predicates: list[str] | None = None
+    ) -> list[dict[str, Any]]:
+        known = ", ".join(known_predicates) if known_predicates else "(none yet)"
+        user_prompt = (
+            f"client_id: {client_id}\nclient_name: {client_name}\n"
+            f"KNOWN PREDICATES for this client (reuse exactly when applicable): {known}\n"
+            f"message: {message}"
+        )
         data = self._chat_json(EXTRACTION_SYSTEM_PROMPT, user_prompt)
         return data.get("claims", [])
 

@@ -28,7 +28,9 @@ def _extract_ask_amount(text: str) -> float | None:
 class MockProvider(LLMProvider):
     name = "mock_deterministic"
 
-    def extract_claims(self, message: str, client_id: str, client_name: str) -> list[dict[str, Any]]:
+    def extract_claims(
+        self, message: str, client_id: str, client_name: str, known_predicates: list[str] | None = None
+    ) -> list[dict[str, Any]]:
         text = message.lower()
         candidates: list[dict[str, Any]] = []
 

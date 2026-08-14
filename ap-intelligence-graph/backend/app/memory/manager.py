@@ -25,7 +25,11 @@ def propose_candidates_from_message(db: Session, *, client_id: str, message: str
 
     db.add(RawEvent(client_id=client_id, event_type="chat_message", payload={"message": message}))
 
-    raw_claims, provider_name = extract_candidate_claims(message, client_id, client_name)
+    known_predicates = sorted({
+        c.predicate for c in
+        db.query(MemoryClaim).filter(MemoryClaim.client_id == client_id, MemoryClaim.status == "active").all()
+    })
+    raw_claims, provider_name = extract_candidate_claims(message, client_id, client_name, known_predicates)
 
     candidates: list[MemoryCandidate] = []
     for raw in raw_claims:

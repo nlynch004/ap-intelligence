@@ -20,6 +20,26 @@ Each claim must have:
 - confidence: 0-1 float, reflecting how directly and unambiguously this was stated
 - rationale: one sentence citing the part of the message that supports this claim
 
+Critical rule on predicates: downstream conflict detection is a deterministic exact-string match \
+on (subject_type, subject_id, predicate) - it does NOT use semantic similarity. If the message is \
+provided with a KNOWN PREDICATES list for this subject, and one of those predicates conceptually \
+matches part of what's being described, you MUST reuse that exact predicate string rather than \
+inventing a new one, even if your own phrasing would differ. Getting this wrong silently breaks \
+conflict/contradiction detection.
+
+Also: extract each distinct fact as its own claim, even when one sentence bundles several. A \
+message describing a change in overall partnership direction, a change in growth objective, and a \
+tradeoff the client will accept is normally THREE separate claims, not one merged claim - e.g.:
+
+message: "Client's strategy changed after the exec review. They now want to reduce coupon \
+dependence and prioritize new-customer growth, even if short-term ROAS is a little lower."
+->
+{"claims": [
+  {"predicate": "partnership_strategy", "value": "reduce_coupon_dependence", ...},
+  {"predicate": "primary_growth_objective", "value": "new_customer_acquisition", ...},
+  {"predicate": "accepts_tradeoff", "value": "lower_short_term_roas", ...}
+]}
+
 Respond ONLY with JSON: {"claims": [...]}"""
 
 RECOMMENDATION_SYSTEM_PROMPT = """You are the recommendation agent for AP Intelligence Graph. \
@@ -33,6 +53,10 @@ Rules:
 - Treat PORTFOLIO EXPERIENCE as supporting evidence from comparable historical cases, not \
   universal truth or proof of causality.
 - Never convert attributed revenue into causal incrementality unless the evidence supports it.
+- If a CAUTION item casts doubt on how a metric was tracked (e.g. a possible attribution or \
+  promo-code leakage issue), do not base a performance bonus on that disputed metric. Prefer a \
+  bonus basis the caution does not call into question, e.g. "verified_new_customer_revenue" \
+  rather than raw "attributed_revenue" when attribution integrity itself is the open question.
 - Do not invent metrics that are not present in the evidence brief or context.
 - Produce a concrete, structured recommendation with specific terms.
 
