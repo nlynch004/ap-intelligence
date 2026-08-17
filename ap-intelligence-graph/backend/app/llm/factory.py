@@ -31,15 +31,32 @@ def get_provider() -> LLMProvider:
     return _mock
 
 
-def call_with_fallback(fn_name: str, *args, **kwargs):
+def call_with_fallback(fn_name: str, *args, validate=None, **kwargs):
     """Call `fn_name` on the live provider; on any runtime error (bad key,
-    network, rate limit, malformed JSON), fall back to the deterministic
-    provider so a mid-demo API hiccup never breaks the flow."""
+    network, rate limit, malformed JSON) OR a structurally invalid result,
+    fall back to the deterministic provider so a mid-demo API hiccup - or an
+    LLM response that doesn't match the expected schema - never breaks the
+    flow with an unhandled exception.
+
+    `validate`, if given, is a callable(raw_result) -> result that raises on
+    a structurally invalid result and otherwise returns the (possibly
+    normalized) result. A validation failure is treated exactly like a call
+    failure: it triggers the same mock fallback, not a propagated exception.
+    """
+
+    def _mock_result():
+        result = getattr(_mock, fn_name)(*args, **kwargs)
+        return validate(result) if validate else result
+
     provider = get_provider()
     if provider is _mock:
-        return getattr(_mock, fn_name)(*args, **kwargs), _mock.name
+        return _mock_result(), _mock.name
+
     try:
-        return getattr(provider, fn_name)(*args, **kwargs), provider.name
+        result = getattr(provider, fn_name)(*args, **kwargs)
+        if validate:
+            result = validate(result)
+        return result, provider.name
     except Exception:
-        logger.exception("Live provider call to %s failed, falling back to mock", fn_name)
-        return getattr(_mock, fn_name)(*args, **kwargs), f"{_mock.name} (fallback)"
+        logger.exception("Live provider call to %s failed or returned an invalid result, falling back to mock", fn_name)
+        return _mock_result(), f"{_mock.name} (fallback)"

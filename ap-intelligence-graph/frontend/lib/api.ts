@@ -3,6 +3,7 @@ import type {
   ClientBrief,
   ClientSummary,
   ConflictResolveResponse,
+  DemoResetResponse,
   GraphResponse,
   MemoryOperation,
   MemoryReviewResponse,
@@ -63,4 +64,7 @@ export const api = {
 
   simulateOutcome: (decisionId: string) =>
     request<SimulateOutcomeResponse>(`/api/decisions/${decisionId}/simulate-outcome`, { method: "POST" }),
+
+  // Demo-only - see backend/app/routers/demo.py.
+  resetDemo: () => request<DemoResetResponse>("/api/demo/reset", { method: "POST" }),
 };

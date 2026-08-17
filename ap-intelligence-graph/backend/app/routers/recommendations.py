@@ -22,6 +22,7 @@ def create_recommendation(req: schemas.RecommendationRequest, db: Session = Depe
     return schemas.RecommendationResponse(
         client_id=req.client_id,
         partner_id=req.partner_id,
+        decision_evidence=ctx["decision_evidence"],
         recommendation=raw_rec["recommendation"],
         recommended_terms=raw_rec["recommended_terms"],
         confidence=raw_rec["confidence"],

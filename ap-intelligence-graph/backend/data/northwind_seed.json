@@ -133,7 +133,7 @@
       "value": "Jessica Moreno has negotiated terms with Summit Sisters across all 3 prior campaigns.",
       "claim_class": "historical_observation",
       "confidence": 0.92,
-      "authority_score": 0.85,
+      "authority_score": 0.75,
       "source": {"type": "account_team_annotation", "source_id": "seed", "speaker": "jessica_moreno"},
       "valid_from": "2026-05-15",
       "status": "active"

@@ -8,18 +8,23 @@ This module owns that orchestration; app/memory/operations.py owns the
 actual state transitions.
 """
 
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.agents.memory_extractor import extract_candidate_claims
 from app.memory.conflict_resolver import decide_operation, find_active_conflict
-from app.memory.operations import execute_create, execute_reject, execute_supersede, execute_update
+from app.memory.extraction_schema import ExtractedClaimIn
+from app.memory.operations import execute_create, execute_reject, execute_supersede, execute_update, log_activity
+from app.memory.predicates import normalize_predicate
 from app.models import Client, MemoryCandidate, MemoryClaim, RawEvent
 
 
 def propose_candidates_from_message(db: Session, *, client_id: str, message: str) -> tuple[list[MemoryCandidate], str]:
-    """Runs the extraction agent, deterministically checks each candidate
-    against existing active memory, and persists them as pending
-    MemoryCandidate rows (spec Sec.18 - never silently persisted)."""
+    """Runs the extraction agent, validates + normalizes each candidate,
+    deterministically checks it against existing active memory, and
+    persists surviving candidates as pending MemoryCandidate rows
+    (spec Sec.18 - never silently persisted, and the LLM never writes
+    canonical memory directly - see approve_candidate)."""
     client = db.get(Client, client_id)
     client_name = client.name if client else client_id
 
@@ -33,19 +38,58 @@ def propose_candidates_from_message(db: Session, *, client_id: str, message: str
 
     candidates: list[MemoryCandidate] = []
     for raw in raw_claims:
-        payload = dict(raw)
-        if payload.get("subject_type") == "client":
-            payload["subject_id"] = client_id
-        payload.setdefault("subject_label", client_name)
+        # 1. Schema validation - a malformed or out-of-range extracted claim
+        # (missing field, confidence outside [0,1], unrecognized claim_class,
+        # blank predicate/value) is dropped here and never reaches the
+        # candidate table, rather than crashing or silently persisting junk.
+        try:
+            validated = ExtractedClaimIn(**raw)
+        except ValidationError as e:
+            first_error = e.errors()[0]["msg"] if e.errors() else "validation error"
+            log_activity(
+                db, client_id, "REJECT",
+                f"Dropped a malformed extracted claim: {first_error}",
+                detail={"raw": raw, "errors": e.errors()},
+            )
+            continue
 
-        existing = find_active_conflict(
-            db,
-            subject_type=payload["subject_type"],
-            subject_id=payload["subject_id"],
-            predicate=payload["predicate"],
-            client_id=client_id if payload["subject_type"] == "client" else None,
-        )
-        operation = decide_operation(payload, existing)
+        payload = validated.model_dump()
+        if payload["subject_type"] == "client":
+            payload["subject_id"] = client_id
+        if not payload["subject_label"]:
+            payload["subject_label"] = client_name if payload["subject_type"] == "client" else payload["subject_id"]
+        # Every candidate from this pipeline originates from a chat message,
+        # matching the source.type _source_for_candidate() will actually use
+        # if approved - set here (not by the LLM) so the review card can
+        # show provenance before approval, not just after (spec Sec.18).
+        payload["source_type"] = "account_team_statement"
+
+        # 2. Deterministic alias normalization - rewrites a semantically
+        # equivalent predicate spelling (e.g. "client_strategy") to the
+        # canonical name ("partnership_strategy") *before* conflict lookup,
+        # so a differently-worded restatement of an existing belief still
+        # collides with it instead of silently missing the conflict.
+        normalized_predicate, is_known = normalize_predicate(payload["predicate"])
+        payload["predicate"] = normalized_predicate
+
+        if is_known:
+            existing = find_active_conflict(
+                db,
+                subject_type=payload["subject_type"],
+                subject_id=payload["subject_id"],
+                predicate=payload["predicate"],
+                client_id=client_id if payload["subject_type"] == "client" else None,
+            )
+            operation = decide_operation(payload, existing)
+        else:
+            # 3. Genuinely unknown predicate: do NOT guess which existing
+            # belief (if any) this might contradict, and do NOT silently
+            # treat it as a normal CREATE. Flag it for explicit human
+            # review - it still requires the same manual approval every
+            # candidate does, but is visibly distinguished (in the API/DB)
+            # as an unrecognized concept rather than a matched-vocabulary one.
+            existing = None
+            operation = "REQUEST_HUMAN_REVIEW"
 
         candidate = MemoryCandidate(
             client_id=client_id,
@@ -103,7 +147,12 @@ def approve_candidate(db: Session, candidate: MemoryCandidate) -> dict:
         db.flush()
         return {"operation_executed": "UPDATE", "claim": claim, "superseded_claim": None, "requires_conflict_resolution": False, "conflict_with_claim": None}
 
-    # CREATE
+    # CREATE, and also REQUEST_HUMAN_REVIEW (an unrecognized-predicate
+    # candidate from propose_candidates_from_message): both execute as a
+    # plain create once a human has explicitly clicked Approve here - that
+    # click *is* the human review the label promises. The distinction only
+    # matters pre-approval, where REQUEST_HUMAN_REVIEW candidates skip
+    # automatic conflict matching against the canonical vocabulary.
     claim = execute_create(db, candidate.claim_payload, client_id=candidate.client_id, source=source)
     candidate.status = "approved"
     db.flush()

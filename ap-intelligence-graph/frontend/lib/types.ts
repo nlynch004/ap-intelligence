@@ -61,6 +61,7 @@ export interface CandidateClaimPayload {
   claim_class: ClaimClass;
   confidence: number;
   rationale: string;
+  source_type: string;
 }
 
 export interface MemoryCandidate {
@@ -112,9 +113,67 @@ export interface ClientBrief {
   summary: string;
 }
 
+// Constructed deterministically on the backend from retrieved DB rows - see
+// backend/app/memory/retrieval.py. The frontend renders these fields
+// directly; it must never parse `evidence_brief` prose to reconstruct them.
+export interface CommercialAsk {
+  proposed_fee: number | null;
+  prior_fee: number | null;
+  increase_pct: number | null;
+}
+
+export interface CampaignPerformance {
+  campaign_id: string;
+  month: string;
+  month_label: string;
+  fee: number | null;
+  attributed_revenue: number | null;
+  attributed_roas: number | null;
+  link_clicks: number | null;
+  code_redemptions: number | null;
+}
+
+export interface MeasurementCaution {
+  claim_id: string;
+  claim_class: ClaimClass;
+  status: ClaimStatus;
+  confidence: number;
+  value: string;
+  summary: string;
+  campaign_id: string | null;
+  link_clicks: number | null;
+  code_redemptions: number | null;
+  source_type: string | null;
+}
+
+export interface ClientMemoryItem {
+  claim_id: string;
+  predicate: string;
+  value: string;
+  claim_class: ClaimClass;
+  confidence: number;
+}
+
+export interface PortfolioEvidence {
+  pattern_id: string;
+  evidence_count: number;
+  positive_outcomes: number | null;
+  description: string;
+  synthetic: boolean;
+}
+
+export interface DecisionEvidence {
+  commercial_ask: CommercialAsk;
+  prior_performance: CampaignPerformance[];
+  measurement_cautions: MeasurementCaution[];
+  client_memory: ClientMemoryItem[];
+  portfolio_evidence: PortfolioEvidence | null;
+}
+
 export interface RecommendationResponse {
   client_id: string;
   partner_id: string;
+  decision_evidence: DecisionEvidence;
   recommendation: string;
   recommended_terms: { base_fee: number; performance_bonus_pct: number; bonus_basis: string; [k: string]: unknown };
   confidence: number;
@@ -193,4 +252,11 @@ export interface ClientSummary {
 export interface Partner {
   id: string;
   name: string;
+}
+
+// Demo-only - see backend/app/routers/demo.py.
+export interface DemoResetResponse {
+  status: string;
+  demo_only: boolean;
+  message: string;
 }

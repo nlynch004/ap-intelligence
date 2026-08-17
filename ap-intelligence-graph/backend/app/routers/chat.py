@@ -58,6 +58,7 @@ def chat(req: schemas.ChatRequest, db: Session = Depends(get_db)):
         rec = schemas.RecommendationResponse(
             client_id=req.client_id,
             partner_id=partner.id,
+            decision_evidence=ctx["decision_evidence"],
             recommendation=raw_rec["recommendation"],
             recommended_terms=raw_rec["recommended_terms"],
             confidence=raw_rec["confidence"],

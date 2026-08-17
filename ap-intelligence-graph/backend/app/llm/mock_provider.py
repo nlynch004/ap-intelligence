@@ -7,22 +7,10 @@ OpenAI key later changes nothing about the app's behavior contract - only
 the generality/quality of extraction and prose (see llm/factory.py).
 """
 
-import re
 from typing import Any
 
+from app.formatting import extract_dollar_amount
 from app.llm.provider import LLMProvider
-
-_MONEY_RE = re.compile(r"\$?\s?([\d,]+(?:\.\d+)?)\s*(k\b)?", re.IGNORECASE)
-
-
-def _extract_ask_amount(text: str) -> float | None:
-    for match in re.finditer(r"\$\s?([\d,]+(?:\.\d+)?)\s*(k\b)?", text, re.IGNORECASE):
-        raw, k = match.groups()
-        value = float(raw.replace(",", ""))
-        if k:
-            value *= 1000
-        return value
-    return None
 
 
 class MockProvider(LLMProvider):
@@ -81,7 +69,7 @@ class MockProvider(LLMProvider):
         return candidates
 
     def recommend(self, question: str, evidence_brief: str, context: dict[str, Any]) -> dict[str, Any]:
-        ask = _extract_ask_amount(question) or context.get("campaign_ask") or 6000.0
+        ask = extract_dollar_amount(question) or context.get("campaign_ask") or 6000.0
         base_fee = round((ask * 0.5833) / 100) * 100
         bonus_pct = 10
 

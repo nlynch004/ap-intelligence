@@ -17,6 +17,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from app.db import Base, SessionLocal, engine
+from app.memory.operations import authority_for_source
 from app.models import (
     ActivityEvent,
     Campaign,
@@ -58,7 +59,12 @@ def _derive_attribution_hypothesis(campaign: dict) -> dict | None:
         "value": "possible_promo_code_leakage",
         "claim_class": "hypothesis",
         "confidence": confidence,
-        "authority_score": 0.4,
+        # Derived from the same canonical authority table every other write
+        # path uses (app/memory/operations.py::SOURCE_AUTHORITY), rather
+        # than a hand-picked value that could silently drift from it - this
+        # is exactly what happened before (0.4 here vs 0.35 in the table
+        # for the same "agent_inference" source type).
+        "authority_score": authority_for_source("agent_inference"),
         "source": {
             "type": "agent_inference",
             "source_id": "deterministic_rule:redemption_click_ratio",

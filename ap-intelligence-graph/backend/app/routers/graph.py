@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.db import get_db
+from app.formatting import format_month
 from app.llm.factory import call_with_fallback
 from app.memory.retrieval import active_client_memories
 from app.serializers import claim_to_out
@@ -34,12 +35,19 @@ def _resolve_node(db: Session, node_type: str, raw_id: str) -> schemas.GraphNode
         obj = db.get(models.Campaign, raw_id)
         if not obj:
             return None
+        partner = db.get(models.Partner, obj.partner_id)
+        partner_name = partner.name if partner else obj.partner_id
+        # Two-line label ("Summit Sisters" / "May 2026 Campaign") - a bare
+        # "2026-05 campaign" is indistinguishable between two creators who
+        # both ran a campaign that month (spec Sec.6, Step 4 audit finding).
+        # Frontend renders the "\n" as a line break (whitespace-pre-line).
         return schemas.GraphNode(
-            id=node_key(node_type, raw_id), node_type="campaign", label=f"{obj.month} campaign",
+            id=node_key(node_type, raw_id), node_type="campaign",
+            label=f"{partner_name}\n{format_month(obj.month)} Campaign",
             data={
                 "flat_fee": obj.flat_fee, "link_clicks": obj.link_clicks,
                 "code_redemptions": obj.code_redemptions, "attributed_revenue": obj.attributed_revenue,
-                "partner_id": obj.partner_id,
+                "partner_id": obj.partner_id, "partner_name": partner_name, "month": obj.month,
             },
         )
 
@@ -64,7 +72,10 @@ def _resolve_node(db: Session, node_type: str, raw_id: str) -> schemas.GraphNode
         obj = db.get(models.Decision, raw_id)
         if not obj:
             return None
-        return schemas.GraphNode(id=node_key(node_type, raw_id), node_type="decision", label=obj.summary, status=obj.status, data={"terms": obj.terms, "rationale": obj.rationale})
+        return schemas.GraphNode(
+            id=node_key(node_type, raw_id), node_type="decision", label=obj.summary, status=obj.status,
+            data={"terms": obj.terms, "rationale": obj.rationale, "synthetic": obj.synthetic},
+        )
 
     if node_type == "outcome":
         obj = db.get(models.Outcome, raw_id)

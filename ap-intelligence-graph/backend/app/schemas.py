@@ -5,7 +5,7 @@
 
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 ClaimStatus = Literal[
     "active", "superseded", "expired", "low_confidence", "needs_review", "rejected", "deprecated"
@@ -44,8 +44,7 @@ class MemoryClaimOut(BaseModel):
     synthetic: bool
     created_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CandidateClaimPayload(BaseModel):
@@ -60,6 +59,11 @@ class CandidateClaimPayload(BaseModel):
     claim_class: ClaimClass
     confidence: float
     rationale: str = ""
+    # Set deterministically by app.memory.manager (not by the LLM) - the
+    # same value execute_create/execute_supersede will use as source.type
+    # if this candidate is approved (spec Sec.18: review card should show
+    # source, alongside claim/confidence/proposed operation).
+    source_type: str = "account_team_statement"
 
 
 class MemoryCandidateOut(BaseModel):
@@ -72,8 +76,7 @@ class MemoryCandidateOut(BaseModel):
     status: str
     created_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ---- graph ----
@@ -159,9 +162,73 @@ class RecommendationRequest(BaseModel):
     question: str
 
 
+# ---- decision evidence ----
+#
+# Constructed deterministically in app/memory/retrieval.py from the same
+# rows already retrieved for the recommendation context - the LLM never
+# sees or produces this structure (spec Step 5). The frontend renders these
+# fields directly; it must not parse `evidence_brief` prose to reconstruct
+# them.
+
+
+class CommercialAsk(BaseModel):
+    proposed_fee: float | None
+    prior_fee: float | None
+    increase_pct: float | None  # (proposed - prior) / prior * 100, computed in Python
+
+
+class CampaignPerformance(BaseModel):
+    campaign_id: str
+    month: str
+    month_label: str
+    fee: float | None
+    attributed_revenue: float | None
+    attributed_roas: float | None  # attributed_revenue / fee, computed in Python - not incremental/causal revenue
+    link_clicks: int | None
+    code_redemptions: int | None
+
+
+class MeasurementCaution(BaseModel):
+    claim_id: str
+    claim_class: ClaimClass
+    status: ClaimStatus
+    confidence: float
+    value: str
+    summary: str  # deterministically assembled, not LLM-authored
+    campaign_id: str | None = None
+    link_clicks: int | None = None
+    code_redemptions: int | None = None
+    source_type: str | None = None
+
+
+class ClientMemoryItem(BaseModel):
+    claim_id: str
+    predicate: str
+    value: str
+    claim_class: ClaimClass
+    confidence: float
+
+
+class PortfolioEvidence(BaseModel):
+    pattern_id: str
+    evidence_count: int
+    positive_outcomes: int | None
+    description: str
+    synthetic: bool
+
+
+class DecisionEvidence(BaseModel):
+    commercial_ask: CommercialAsk
+    prior_performance: list[CampaignPerformance]
+    measurement_cautions: list[MeasurementCaution]
+    client_memory: list[ClientMemoryItem]
+    portfolio_evidence: PortfolioEvidence | None
+
+
 class RecommendationResponse(BaseModel):
     client_id: str
     partner_id: str
+    decision_evidence: DecisionEvidence
     recommendation: str
     recommended_terms: dict[str, Any]
     confidence: float
@@ -196,8 +263,7 @@ class DecisionOut(BaseModel):
     synthetic: bool
     created_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OutcomeOut(BaseModel):
@@ -208,8 +274,7 @@ class OutcomeOut(BaseModel):
     is_simulated: bool
     created_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SimulateOutcomeResponse(BaseModel):
@@ -229,8 +294,7 @@ class ActivityEventOut(BaseModel):
     detail: dict[str, Any]
     created_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 ChatResponse.model_rebuild()
