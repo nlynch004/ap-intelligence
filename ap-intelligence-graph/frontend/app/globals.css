@@ -1,18 +1,78 @@
 @import "tailwindcss";
 
+/* Dark, enterprise-grade theme (design_handoff_intelligence_graph v2).
+ * Presentation-layer only - see that package's README for the full token
+ * spec. Most colors are applied via inline styles from lib/design.ts
+ * (semantic families + surfaces are data-driven per node/edge), so this
+ * file carries only what's truly global: base tokens, fonts, keyframes,
+ * and the scrollbar/selection treatment used across every scroll region.
+ */
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --surface-app: #090c12;
+  --surface-panel: #0b0f16;
+  --surface-raised: #0d1219;
+  --text-primary: #e6ecf5;
+  --font-ui: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono-ui: var(--font-mono), "IBM Plex Mono", ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--surface-app);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
 }
 
-/* React Flow theming - keep it enterprise-flat, not neon. */
-.react-flow__attribution {
-  display: none;
+::selection {
+  background: rgba(91, 159, 212, 0.28);
+}
+
+.ap-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #1a2130 transparent;
+}
+.ap-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.ap-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ap-scroll::-webkit-scrollbar-thumb {
+  background: #1a2130;
+  border-radius: 4px;
+}
+
+@keyframes edgeflow {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+@keyframes countpop {
+  0% {
+    opacity: 0.35;
+    transform: translateY(2px);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeup {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

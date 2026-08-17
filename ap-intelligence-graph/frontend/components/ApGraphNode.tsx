@@ -1,47 +1,93 @@
 "use client";
 
-import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
-import type { GraphNodeData } from "@/lib/types";
-import { visualFor } from "@/lib/nodeVisuals";
+import { FAMILIES, SURFACE, TEXT } from "@/lib/design";
+import type { NodeDescription } from "@/lib/nodeVisuals";
 
-export type ApNodeData = GraphNodeData & {
+export const NODE_WIDTH = 250;
+/** Vertical offset from a card's top edge to its edge-anchor midline. */
+export const NODE_ANCHOR_Y = 52;
+
+/**
+ * A single absolutely-positioned node card on the graph canvas
+ * (design_handoff v2 Sec.4). Purely presentational - IntelligenceGraph owns
+ * position, focus/hover state, and drag/click wiring.
+ */
+export function ApGraphNode({
+  x,
+  y,
+  desc,
+  isFocus,
+  isDimmed,
+  highlighted,
+  onEnter,
+  onLeave,
+  onClick,
+  onMouseDown,
+}: {
+  x: number;
+  y: number;
+  desc: NodeDescription;
+  isFocus: boolean;
+  /** Opacity 0.3 while another node is focused and this one isn't connected. */
+  isDimmed: boolean;
+  /** Called out by the last chat turn (referenced/supporting memories) - a
+   * quiet accent ring, independent of hover/select focus tracing. */
   highlighted?: boolean;
-  selected?: boolean;
-  [key: string]: unknown;
-};
-
-export type ApFlowNode = Node<ApNodeData, "apNode">;
-
-export function ApGraphNode({ data }: NodeProps<ApFlowNode>) {
-  const v = visualFor(data);
-  const highlighted = data.highlighted;
-  const selected = data.selected;
+  onEnter: () => void;
+  onLeave: () => void;
+  onClick: () => void;
+  onMouseDown: (e: React.MouseEvent) => void;
+}) {
+  const c = FAMILIES[desc.family];
+  const bg = isFocus ? c.node : desc.historical ? SURFACE.nodeHistorical : SURFACE.nodeResting;
+  const border = isFocus ? c.border : SURFACE.nodeBorderResting;
+  const typeColor = desc.historical ? "#4d596d" : c.text;
+  const titleColor = desc.historical ? TEXT.historicalTitle : TEXT.primary;
+  const statusColor = desc.historical ? TEXT.historicalStatus : c.text;
+  const restingOpacity = desc.historical ? 0.7 : 1;
+  const focusRing = isFocus ? `0 0 0 1px ${c.border}, 0 0 0 4px ${c.glow}` : "none";
+  const highlightRing = highlighted ? `0 0 0 2px #5b9fd4` : "none";
+  const boxShadow = [focusRing, highlightRing].filter((s) => s !== "none").join(", ") || "none";
 
   return (
     <div
-      className={[
-        "rounded-lg border px-3 py-2 shadow-sm text-xs min-w-[160px] max-w-[220px] transition-all",
-        v.bg,
-        v.border,
-        v.dashed ? "border-dashed" : "border-solid",
-        v.faded ? "opacity-50" : "opacity-100",
-        highlighted ? "ring-2 ring-offset-1 ring-blue-500 shadow-md" : "",
-        selected ? "ring-2 ring-offset-1 ring-slate-900" : "",
-      ].join(" ")}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+      onClick={onClick}
+      onMouseDown={onMouseDown}
+      style={{
+        position: "absolute",
+        left: x,
+        top: y,
+        width: NODE_WIDTH,
+        cursor: "grab",
+        userSelect: "none",
+        borderRadius: 10,
+        padding: "14px 16px",
+        transition: "opacity 0.3s, box-shadow 0.3s, background 0.3s",
+        opacity: isDimmed ? 0.3 : restingOpacity,
+        background: bg,
+        border: `1px solid ${border}`,
+        boxShadow,
+      }}
     >
-      <Handle type="target" position={Position.Left} className="!bg-slate-400 !w-1.5 !h-1.5" />
-      <Handle type="source" position={Position.Right} className="!bg-slate-400 !w-1.5 !h-1.5" />
-      <div className="flex items-center gap-1.5">
-        <span className="text-sm leading-none">{v.icon}</span>
-        <span className={`font-medium leading-tight ${v.accent}`}>{data.label}</span>
+      <div style={{ fontSize: 12, color: typeColor, marginBottom: 7 }}>{desc.typeLabel}</div>
+      <div style={{ fontSize: 15.5, fontWeight: 600, lineHeight: 1.35, color: titleColor, whiteSpace: "pre-line" }}>
+        {desc.title}
       </div>
-      {v.badge && (
-        <div className={`mt-1 inline-block rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-white/70 ${v.accent}`}>
-          {v.badge}
+      {desc.detail && <div style={{ fontSize: 13, color: TEXT.metadata, marginTop: 4, lineHeight: 1.45 }}>{desc.detail}</div>}
+      {(desc.statusText || desc.synthetic) && (
+        <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          {desc.statusText && <span style={{ fontSize: 12, color: statusColor }}>{desc.statusText}</span>}
+          {desc.synthetic && (
+            <span
+              title="Fictional demo data - not a real AP client, creator, or decision."
+              style={{ fontSize: 10, letterSpacing: "0.08em", color: "#6b6288" }}
+            >
+              SYNTHETIC
+            </span>
+          )}
         </div>
-      )}
-      {data.node_type === "memory_claim" && typeof data.data?.confidence === "number" && (
-        <div className="mt-1 text-[10px] text-slate-500">confidence {(data.data.confidence as number).toFixed(2)}</div>
       )}
     </div>
   );

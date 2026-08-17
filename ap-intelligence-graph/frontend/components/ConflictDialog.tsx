@@ -1,5 +1,6 @@
 "use client";
 
+import { ACCENT, SURFACE, TEXT } from "@/lib/design";
 import type { MemoryCandidate, MemoryClaim } from "@/lib/types";
 
 export function ConflictDialog({
@@ -16,52 +17,52 @@ export function ConflictDialog({
   onDismiss: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-5">
-        <div className="text-sm font-semibold text-slate-900 mb-1">Conflicting belief detected</div>
-        <p className="text-xs text-slate-500 mb-4">
-          This new statement contradicts an existing active memory. The system can change its mind without
-          forgetting its history - approving will mark the old belief as historical and activate the new one.
+    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(4,6,10,0.6)", padding: 16 }}>
+      <div style={{ background: SURFACE.raised, borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.5)", maxWidth: 420, width: "100%", padding: 20 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: TEXT.primary, marginBottom: 6 }}>Conflicting belief detected</div>
+        <p style={{ fontSize: 13, color: TEXT.secondary2, marginBottom: 16, lineHeight: 1.5 }}>
+          This new statement contradicts an existing active memory. The system can change its mind without forgetting its history - approving will mark
+          the old belief as historical and activate the new one.
         </p>
 
-        <div className="space-y-2 mb-4">
-          <div className="rounded border border-slate-200 bg-slate-50 p-2">
-            <div className="text-[10px] uppercase tracking-wide text-slate-400 mb-0.5">Current (active)</div>
-            <div className="text-xs text-slate-700">
-              {existingClaim.predicate.replace(/_/g, " ")}: <span className="font-medium">{existingClaim.value.replace(/_/g, " ")}</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+          <div style={{ background: SURFACE.nodeResting, border: `1px solid ${SURFACE.nodeBorderResting}`, borderRadius: 8, padding: 10 }}>
+            <div style={{ fontSize: 11, letterSpacing: "0.06em", color: TEXT.faint, marginBottom: 3 }}>CURRENT (ACTIVE)</div>
+            <div style={{ fontSize: 13, color: TEXT.strongSecondary2 }}>
+              {existingClaim.predicate.replace(/_/g, " ")}: <span style={{ fontWeight: 600, color: TEXT.primary }}>{existingClaim.value.replace(/_/g, " ")}</span>
             </div>
-            <div className="text-[10px] text-slate-400 mt-0.5">valid since {existingClaim.valid_from}</div>
+            <div style={{ fontSize: 11, color: TEXT.faint, marginTop: 3 }}>valid since {existingClaim.valid_from}</div>
           </div>
-          <div className="text-center text-slate-400 text-xs">↓ SUPERSEDE ↓</div>
-          <div className="rounded border border-blue-200 bg-blue-50 p-2">
-            <div className="text-[10px] uppercase tracking-wide text-blue-400 mb-0.5">Proposed (new)</div>
-            <div className="text-xs text-blue-800">
+          <div style={{ textAlign: "center", color: TEXT.faint, fontSize: 12 }}>↓ supersede ↓</div>
+          <div style={{ background: "#0e1620", border: "1px solid #1c2b3a", borderRadius: 8, padding: 10 }}>
+            <div style={{ fontSize: 11, letterSpacing: "0.06em", color: "#5b9fd4", marginBottom: 3 }}>PROPOSED (NEW)</div>
+            <div style={{ fontSize: 13, color: "#8fbfe3" }}>
               {candidate.claim_payload.predicate.replace(/_/g, " ")}:{" "}
-              <span className="font-medium">{candidate.claim_payload.value.replace(/_/g, " ")}</span>
+              <span style={{ fontWeight: 600, color: TEXT.primary }}>{candidate.claim_payload.value.replace(/_/g, " ")}</span>
             </div>
-            <div className="text-[10px] text-blue-400 mt-0.5">confidence {candidate.claim_payload.confidence.toFixed(2)}</div>
+            <div style={{ fontSize: 11, color: "#5b9fd4", marginTop: 3 }}>confidence {candidate.claim_payload.confidence.toFixed(2)}</div>
           </div>
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
           <button
             disabled={busy}
             onClick={onDismiss}
-            className="text-xs px-3 py-1.5 rounded border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+            style={{ fontSize: 13, padding: "7px 14px", borderRadius: 8, border: `1px solid ${SURFACE.separator}`, background: "transparent", color: TEXT.secondary, cursor: "pointer", opacity: busy ? 0.5 : 1 }}
           >
             Decide later
           </button>
           <button
             disabled={busy}
             onClick={() => onResolve("REJECT")}
-            className="text-xs px-3 py-1.5 rounded border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+            style={{ fontSize: 13, padding: "7px 14px", borderRadius: 8, border: `1px solid ${SURFACE.separator}`, background: "transparent", color: TEXT.secondary, cursor: "pointer", opacity: busy ? 0.5 : 1 }}
           >
             Keep old belief
           </button>
           <button
             disabled={busy}
             onClick={() => onResolve("SUPERSEDE")}
-            className="text-xs px-3 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            style={{ fontSize: 13, fontWeight: 600, padding: "7px 14px", borderRadius: 8, border: "none", background: ACCENT.blue, color: "#0a1622", cursor: "pointer", opacity: busy ? 0.5 : 1 }}
           >
             Supersede
           </button>

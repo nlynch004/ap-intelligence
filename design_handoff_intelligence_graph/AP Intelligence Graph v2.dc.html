@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    @keyframes edgeflow { to { stroke-dashoffset: -22; } }
+    @keyframes countpop { 0% { opacity: 0.35; transform: translateY(2px); } 60% { opacity: 1; } 100% { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeup { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    body { margin: 0; background: #070a10; }
+    * { box-sizing: border-box; }
+    ::selection { background: rgba(91,159,212,0.28); }
+    .ap-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+    .ap-scroll::-webkit-scrollbar-track { background: transparent; }
+    .ap-scroll::-webkit-scrollbar-thumb { background: #1a2130; border-radius: 4px; }
+    a { color: #7fb3dd; text-decoration: none; }
+    a:hover { color: #a3cbea; }
+  </style>
+</helmet>
+<div style="display:flex;flex-direction:column;height:100vh;width:100%;background:#090c12;font-family:'Plus Jakarta Sans',ui-sans-serif,system-ui,sans-serif;color:#e6ecf5;font-size:15px;line-height:1.5;overflow:hidden">
+
+  <header style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 24px;height:56px;background:#0b0f16;border-bottom:1px solid #151b26">
+    <div style="display:flex;align-items:center;gap:12px;min-width:0">
+      <span style="width:8px;height:8px;border-radius:2px;background:#4fb98d;flex:none"></span>
+      <span style="font-size:15px;font-weight:600;color:#e6ecf5;white-space:nowrap">AP Intelligence Graph</span>
+      <span style="width:1px;height:16px;background:#1c2431;flex:none"></span>
+      <span style="font-size:14px;color:#94a3ba;white-space:nowrap">Creator renewal <span style="color:#4b586e">/</span> Summit Sisters</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;flex:none">
+      <span style="font-size:14px;color:#c3cfe0">Northwind Outfitters</span>
+      <div style="display:flex;gap:2px">
+        <button onclick="{{ toggleChat }}" title="Show/hide conversation panel" style="width:26px;height:26px;border:none;background:transparent;color:{{ chatToggleColor }};font-size:13px;cursor:pointer">◧</button>
+        <button onclick="{{ toggleInspector }}" title="Show/hide context panel" style="width:26px;height:26px;border:none;background:transparent;color:{{ inspectorToggleColor }};font-size:13px;cursor:pointer">◨</button>
+      </div>
+      <button onclick="{{ resetDemo }}" style="font-size:13px;color:#94a3ba;background:transparent;border:none;padding:6px 4px;cursor:pointer">Reset</button>
+    </div>
+  </header>
+
+  <div style="flex:1;display:flex;min-height:0">
+
+    <!-- CONVERSATION / WORKFLOW -->
+    <sc-if value="{{ chatVisible }}" hint-placeholder-val="{{ true }}">
+    <section class="ap-scroll" style="width:{{ chatW }}px;flex:0 1 auto;min-width:240px;display:flex;flex-direction:column;background:#0b0f16;min-height:0">
+      <div style="padding:22px 22px 16px">
+        <div style="font-size:11px;letter-spacing:0.09em;color:#5c6a82;margin-bottom:14px">CREATOR RENEWAL</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+            <button onclick="{{ s.onClick }}" style="display:flex;gap:14px;text-align:left;background:{{ s.bg }};border:none;border-radius:8px;padding:11px 12px;cursor:pointer;width:100%">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#4f5d75;padding-top:2px;flex:none">{{ s.num }}</span>
+              <span style="min-width:0;flex:1">
+                <span style="display:block;font-size:14px;font-weight:600;color:{{ s.titleColor }}">{{ s.title }}</span>
+                <span style="display:block;font-size:13px;color:#7b8aa3;margin-top:1px">{{ s.desc }}</span>
+              </span>
+              <span style="font-size:12px;color:{{ s.statusColor }};flex:none;padding-top:3px;white-space:nowrap">{{ s.status }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="padding:6px 22px 10px;border-top:1px solid #141a25">
+        <div style="font-size:11px;letter-spacing:0.09em;color:#5c6a82;padding-top:14px">CONVERSATION</div>
+      </div>
+
+      <div class="ap-scroll" style="flex:1;overflow-y:auto;padding:6px 22px 22px;display:flex;flex-direction:column;gap:14px;min-height:0">
+        <sc-for list="{{ messages }}" as="m" hint-placeholder-count="0">
+          <div style="display:flex;justify-content:{{ m.align }}">
+            <div style="max-width:{{ m.maxWidth }};border-radius:12px;padding:{{ m.padding }};font-size:14px;line-height:1.55;white-space:pre-line;background:{{ m.bg }};color:{{ m.color }};animation:fadeup 0.25s ease">{{ m.text }}</div>
+          </div>
+        </sc-for>
+
+        <sc-if value="{{ evidenceShown }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#0d1219;border-radius:12px;padding:18px;animation:fadeup 0.3s ease">
+            <div style="font-size:11px;letter-spacing:0.09em;color:#5c6a82;margin-bottom:16px">DECISION EVIDENCE</div>
+
+            <div style="margin-bottom:18px">
+              <div style="font-size:13px;color:#7b8aa3;margin-bottom:6px">Commercial ask</div>
+              <div style="font-size:16px;color:#e6ecf5;font-weight:600">$6,000 proposed</div>
+              <div style="font-size:13px;color:#7b8aa3;margin-top:2px">$4,200 prior fee <span style="color:#c9975a">· +42.9%</span></div>
+            </div>
+
+            <div style="margin-bottom:18px">
+              <div style="font-size:13px;color:#7b8aa3;margin-bottom:8px">Historical performance</div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div style="display:flex;justify-content:space-between;font-size:14px;color:#c3cfe0"><span>September 2025</span><span style="color:#94a3ba">$4,000 → $9,840</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#4fb98d">2.46x</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:14px;color:#c3cfe0"><span>February 2026</span><span style="color:#94a3ba">$4,000 → $10,120</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#4fb98d">2.53x</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:14px;color:#c3cfe0"><span>May 2026</span><span style="color:#94a3ba">$4,200 → $31,240</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#4fb98d">7.44x</span></div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:18px">
+              <div style="font-size:13px;color:#7b8aa3;margin-bottom:8px">Governed context</div>
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5">
+                <div><span style="color:#7b8aa3">Relationship</span><br><span style="color:#e6ecf5">Existing creator partner</span></div>
+                <div><span style="color:#7b8aa3">Strategy</span><br><span style="color:#e6ecf5">Reduce coupon dependence</span></div>
+                <div><span style="color:#7b8aa3">Primary objective</span><br><span style="color:#e6ecf5">New-customer acquisition</span></div>
+                <div><span style="color:#7b8aa3">Negotiation history</span><br><span style="color:#e6ecf5">Jessica Moreno negotiated all 3 prior campaigns</span></div>
+              </div>
+            </div>
+
+            <div style="background:rgba(201,151,90,0.06);border-radius:10px;padding:14px;margin-bottom:18px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <span style="color:#c9975a;font-size:12px">△</span>
+                <span style="font-size:13px;color:#c9975a;font-weight:600">Measurement caution</span>
+              </div>
+              <div style="font-size:14px;color:#d5cbb8;font-weight:600;margin-bottom:6px">Attribution integrity anomaly</div>
+              <div style="font-size:14px;color:#a89b85;line-height:1.55">1,847 code redemptions against 385 tracked clicks. May indicate off-link code distribution.</div>
+              <div style="font-size:12px;font-family:'IBM Plex Mono',monospace;color:#8a7e6b;margin-top:8px">unverified hypothesis · confidence 0.61</div>
+            </div>
+
+            <div style="margin-bottom:20px">
+              <div style="font-size:13px;color:#7b8aa3;margin-bottom:6px">Portfolio experience</div>
+              <div style="font-size:14px;color:#e6ecf5"><span style="color:#8f83c9">{{ evidenceCount }} comparable cases</span> · hybrid terms outperform flat fees</div>
+              <div style="font-size:11px;letter-spacing:0.08em;color:#6b6288;margin-top:6px">SYNTHETIC</div>
+            </div>
+
+            <div style="border-top:1px solid #161d28;padding-top:16px">
+              <div style="font-size:11px;letter-spacing:0.09em;color:#5c6a82;margin-bottom:10px">RECOMMENDATION</div>
+              <div style="font-size:18px;font-weight:600;color:#e6ecf5">Renew &amp; test</div>
+              <div style="font-size:14px;color:#94a3ba;margin-top:4px">$3,500 base + 10% performance bonus</div>
+              <sc-if value="{{ showSimulate }}" hint-placeholder-val="{{ false }}">
+                <button onclick="{{ step4 }}" style="margin-top:14px;font-size:13px;font-weight:600;color:#0d1a17;background:#4fb98d;border:none;border-radius:8px;padding:9px 16px;cursor:pointer">Simulate outcome</button>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </section>
+
+    <div onmousedown="{{ startResizeChat }}" style="width:1px;flex:none;cursor:col-resize;background:#151b26"></div>
+    </sc-if>
+
+    <!-- GRAPH WORKSPACE -->
+    <section style="flex:1;position:relative;background:#090c12;min-width:420px">
+      <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.016) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.016) 1px,transparent 1px);background-size:72px 72px;pointer-events:none"></div>
+
+      <div class="ap-scroll" ref="{{ scrollRef }}" style="position:absolute;inset:0;overflow:auto;padding:72px">
+        <div style="position:relative;width:{{ scaledW }}px;height:{{ scaledH }}px">
+        <div style="position:relative;width:{{ worldW }}px;height:{{ worldH }}px;transform:scale({{ zoom }});transform-origin:top left">
+          <svg width="{{ worldW }}" height="{{ worldH }}" style="position:absolute;top:0;left:0;overflow:visible">
+            <defs>
+              <sc-for list="{{ markers }}" as="mk" hint-placeholder-count="5">
+                <marker id="{{ mk.id }}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="{{ mk.color }}"></path>
+                </marker>
+              </sc-for>
+            </defs>
+            <sc-for list="{{ edges }}" as="e" hint-placeholder-count="13">
+              <g style="opacity:{{ e.opacity }};transition:opacity 0.3s">
+                <path d="{{ e.d }}" fill="none" stroke="{{ e.color }}" stroke-width="{{ e.width }}" stroke-dasharray="{{ e.dash }}" marker-end="url(#{{ e.marker }})" style="{{ e.anim }}"></path>
+                <sc-if value="{{ e.showLabel }}" hint-placeholder-val="{{ false }}">
+                  <text x="{{ e.lx }}" y="{{ e.ly }}" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" fill="{{ e.labelColor }}" text-anchor="middle">{{ e.label }}</text>
+                </sc-if>
+              </g>
+            </sc-for>
+          </svg>
+
+          <sc-for list="{{ nodes }}" as="n" hint-placeholder-count="11">
+            <div onmouseenter="{{ n.onEnter }}" onmouseleave="{{ n.onLeave }}" onclick="{{ n.onClick }}" onmousedown="{{ n.onDragStart }}"
+              style="position:absolute;left:{{ n.x }}px;top:{{ n.y }}px;width:250px;cursor:grab;user-select:none;border-radius:10px;padding:14px 16px;transition:opacity 0.3s, box-shadow 0.3s, background 0.3s;opacity:{{ n.opacity }};background:{{ n.bg }};border:1px solid {{ n.border }};box-shadow:{{ n.shadow }}">
+              <div style="font-size:12px;color:{{ n.typeColor }};margin-bottom:7px">{{ n.typeLabel }}</div>
+              <div style="font-size:15.5px;font-weight:600;line-height:1.35;color:{{ n.titleColor }}">{{ n.title }}</div>
+              <sc-if value="{{ n.detail }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px;color:#7b8aa3;margin-top:4px;line-height:1.45;animation:{{ n.detailAnim }}">{{ n.detail }}</div>
+              </sc-if>
+              <div style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <sc-if value="{{ n.status }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:12px;color:{{ n.statusColor }}">{{ n.status }}</span>
+                </sc-if>
+                <sc-if value="{{ n.synthetic }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:10px;letter-spacing:0.08em;color:#6b6288">SYNTHETIC</span>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        </div>
+      </div>
+
+      <div style="position:absolute;bottom:20px;right:20px;display:flex;align-items:center;gap:14px">
+        <button onclick="{{ toggleLegend }}" style="font-size:12px;color:#5c6a82;background:transparent;border:none;cursor:pointer;padding:4px">{{ legendLabel }}</button>
+        <div style="display:flex;gap:2px">
+          <button onclick="{{ zoomOut }}" title="Zoom out" style="width:26px;height:26px;border:none;background:transparent;color:#5c6a82;font-size:15px;cursor:pointer">−</button>
+          <button onclick="{{ zoomIn }}" title="Zoom in" style="width:26px;height:26px;border:none;background:transparent;color:#5c6a82;font-size:15px;cursor:pointer">+</button>
+          <button onclick="{{ fitView }}" title="Fit to view" style="width:26px;height:26px;border:none;background:transparent;color:#5c6a82;font-size:12px;cursor:pointer">⛶</button>
+          <button onclick="{{ cleanUp }}" title="Reset layout" style="width:26px;height:26px;border:none;background:transparent;color:#5c6a82;font-size:12px;cursor:pointer">↺</button>
+        </div>
+      </div>
+
+      <sc-if value="{{ legendOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;bottom:56px;right:20px;background:#0d1219;border-radius:10px;padding:16px 18px;font-size:13px;color:#94a3ba;box-shadow:0 8px 24px rgba(0,0,0,0.5)">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:2px;background:#5b9fd4"></span> Client context &amp; memory</div>
+            <div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:2px;background:#c9975a"></span> Uncertainty &amp; review</div>
+            <div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:2px;background:#4fb98d"></span> Decision &amp; outcome</div>
+            <div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:2px;background:#8f83c9"></span> Portfolio intelligence</div>
+            <div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:2px;background:#3d4859"></span> Historical</div>
+          </div>
+          <div style="margin-top:12px;padding-top:11px;border-top:1px solid #161d28;color:#5c6a82;font-size:12px">Select a node to reveal its relationships</div>
+        </div>
+      </sc-if>
+    </section>
+
+    <sc-if value="{{ inspectorVisible }}" hint-placeholder-val="{{ true }}">
+    <div onmousedown="{{ startResizeInspector }}" style="width:1px;flex:none;cursor:col-resize;background:#151b26"></div>
+
+    <!-- CONTEXT -->
+    <section style="width:{{ inspectorW }}px;flex:0 1 auto;min-width:220px;display:flex;flex-direction:column;background:#0b0f16;min-height:0">
+      <div class="ap-scroll" style="flex:1.15;overflow-y:auto;padding:22px;min-height:0">
+        <div style="font-size:11px;letter-spacing:0.09em;color:#5c6a82;margin-bottom:16px">CONTEXT</div>
+        <div style="font-size:19px;font-weight:600;color:#e6ecf5;line-height:1.3">{{ selTitle }}</div>
+        <div style="font-size:13px;color:#7b8aa3;margin-top:3px">{{ selType }}</div>
+        <sc-if value="{{ selStatus }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:13px;color:{{ selStatusColor }};margin-top:12px">{{ selStatus }}</div>
+        </sc-if>
+
+        <sc-for list="{{ selSections }}" as="sec" hint-placeholder-count="2">
+          <div style="margin-top:26px">
+            <div style="font-size:11px;letter-spacing:0.09em;color:#5c6a82;margin-bottom:12px">{{ sec.label }}</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ sec.rows }}" as="r" hint-placeholder-count="3">
+                <div>
+                  <div style="font-size:13px;color:#7b8aa3">{{ r.label }}</div>
+                  <div style="font-size:14.5px;color:#dbe4f0;margin-top:2px;font-family:{{ r.font }}">{{ r.value }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+
+        <sc-if value="{{ selNote }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:24px;font-size:13.5px;line-height:1.6;color:#8c98ad">{{ selNote }}</div>
+        </sc-if>
+      </div>
+
+      <div class="ap-scroll" style="flex:1;overflow-y:auto;padding:22px;border-top:1px solid #141a25;min-height:0">
+        <div style="font-size:11px;letter-spacing:0.09em;color:#5c6a82;margin-bottom:18px">ACTIVITY</div>
+        <div style="display:flex;flex-direction:column">
+          <sc-for list="{{ activity }}" as="a" hint-placeholder-count="5">
+            <div style="display:flex;gap:14px;animation:{{ a.anim }}">
+              <div style="display:flex;flex-direction:column;align-items:center;flex:none;padding-top:5px">
+                <span style="width:6px;height:6px;border-radius:50%;background:{{ a.dot }};flex:none"></span>
+                <span style="width:1px;flex:1;background:#1a2130;min-height:26px"></span>
+              </div>
+              <div style="min-width:0;padding-bottom:20px">
+                <div style="font-size:14px;font-weight:600;color:#dbe4f0">{{ a.title }}</div>
+                <div style="font-size:13px;color:#8c98ad;line-height:1.5;margin-top:2px">{{ a.text }}</div>
+                <div style="font-size:12px;font-family:'IBM Plex Mono',monospace;color:#5c6a82;margin-top:5px">{{ a.time }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+    </sc-if>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1600,&quot;height&quot;:950}}">
+const CARD_W = 250, ANCHOR_Y = 52;
+
+const C = {
+  blue:   { line: "#4a7fa8", node: "#0e1620", border: "#1c2b3a", text: "#8fbfe3", glow: "rgba(91,159,212,0.22)" },
+  green:  { line: "#3f8f6d", node: "#0d1a17", border: "#1b3229", text: "#6fd0a5", glow: "rgba(79,185,141,0.22)" },
+  amber:  { line: "#9c7745", node: "#191510", border: "#33291b", text: "#d2a468", glow: "rgba(201,151,90,0.2)" },
+  purple: { line: "#6d61a4", node: "#14131f", border: "#272338", text: "#a599dd", glow: "rgba(143,131,201,0.2)" },
+  gray:   { line: "#333d4e", node: "#0c1017", border: "#181e29", text: "#8896ac", glow: "rgba(120,140,170,0.12)" },
+  hist:   { line: "#3a4557", node: "#0a0e14", border: "#151b25", text: "#5d6b81", glow: "rgba(120,140,170,0.08)" },
+};
+
+const NODES = [
+  { id: "team_member", type: "Account lead", title: "Jessica Moreno", detail: "Northwind · 3 years", c: "gray", x: 0, y: 175 },
+  { id: "client", type: "Client", title: "Northwind Outfitters", detail: "eCommerce · 1 open campaign", status: "● Active relationship", c: "blue", x: 330, y: 175 },
+  { id: "creator", type: "Creator", title: "Northwind Creator Network", detail: "Instagram · TikTok", c: "gray", x: 660, y: 30 },
+  { id: "publisher", type: "Publisher", title: "Summit Sisters", detail: "Coupon and content", c: "gray", x: 660, y: 310 },
+  { id: "campaign", type: "Campaign", title: "Summit Sisters — May 2026", detail: "$4,200 fee · 7.44x ROAS", c: "gray", x: 990, y: 175 },
+  { id: "mem_hypothesis", type: "Attribution hypothesis", title: "Promo-code leakage suspected", detail: "1,847 redemptions · 385 clicks", status: "△ Review required", c: "amber", x: 1320, y: 0 },
+  { id: "mem_active", type: "Strategy", title: "Reduce coupon dependence", detail: "Grow new customers", status: "● Active", c: "blue", x: 1320, y: 185 },
+  { id: "mem_superseded", type: "Strategy", title: "Grow coupon partnerships", status: "Historical", c: "hist", x: 1320, y: 370, dim: true },
+  { id: "decision", type: "Decision", title: "Renew and test", detail: "$3,500 base + 10% bonus", status: "✓ Accepted", c: "green", x: 1650, y: 185 },
+  { id: "outcome", type: "Outcome", title: "+$412 attributed revenue", c: "green", x: 1980, y: 185, statusKey: "outcome" },
+  { id: "portfolio_pattern", type: "Portfolio pattern", title: "Coupon-dependent creators underperform", c: "purple", x: 1980, y: 385, detailKey: "evidence", synthetic: true },
+];
+
+const EDGES = [
+  { id: "e1", s: "team_member", t: "client", label: "manages", c: "gray" },
+  { id: "e2", s: "client", t: "campaign", label: "has campaign", c: "gray" },
+  { id: "e3", s: "client", t: "creator", label: "has relationship", c: "gray" },
+  { id: "e4", s: "creator", t: "publisher", label: "worked with", c: "gray" },
+  { id: "e5", s: "publisher", t: "campaign", label: "applies to", c: "gray" },
+  { id: "e6", s: "client", t: "mem_active", label: "current strategy", c: "blue" },
+  { id: "e7", s: "mem_active", t: "mem_superseded", label: "supersedes", c: "hist", dashed: true, always: true },
+  { id: "e8", s: "campaign", t: "mem_hypothesis", label: "raises risk", c: "amber", dashed: true },
+  { id: "e9", s: "decision", t: "mem_active", label: "motivated by", c: "blue", dashed: true },
+  { id: "e10", s: "decision", t: "mem_hypothesis", label: "motivated by", c: "amber", dashed: true },
+  { id: "e11", s: "portfolio_pattern", t: "decision", label: "supports", c: "purple" },
+  { id: "e12", s: "team_member", t: "decision", label: "made decision", c: "green" },
+  { id: "e13", s: "decision", t: "outcome", label: "resulted in", c: "green", always: true },
+];
+
+const INSPECT = {
+  team_member: { sections: [{ label: "OVERVIEW", rows: [["Role", "Account lead"], ["Client", "Northwind Outfitters"], ["Tenure", "3 years"]] }, { label: "RELATED", rows: [["Negotiated", "All 3 Summit Sisters campaigns"]] }] },
+  client: { status: "● Active relationship", sections: [
+    { label: "OVERVIEW", rows: [["Industry", "eCommerce"], ["Open campaigns", "1"]] },
+    { label: "CURRENT STRATEGY", rows: [["Strategy", "Reduce coupon dependence"], ["Primary objective", "New-customer acquisition"], ["Accepted tradeoff", "Lower short-term ROAS"]] },
+    { label: "RELATED", rows: [["Summit Sisters", "Publisher"], ["Jessica Moreno", "Account lead"]] }] },
+  creator: { sections: [{ label: "OVERVIEW", rows: [["Platform", "Instagram · TikTok"], ["Partner type", "Creator network"]] }] },
+  publisher: { sections: [{ label: "OVERVIEW", rows: [["Channel", "Coupon and content"], ["Campaigns run", "3"]] }] },
+  campaign: { sections: [{ label: "COMMERCIALS", rows: [["Flat fee", "$4,200"], ["Attributed revenue", "$31,240"], ["ROAS", "7.44x", true]] }, { label: "MEASUREMENT", rows: [["Link clicks", "385", true], ["Code redemptions", "1,847", true]] }] },
+  mem_hypothesis: { status: "△ Review required", sections: [
+    { label: "SOURCE", rows: [["Derivation", "Campaign measurement anomaly"], ["Detected", "May 2026 campaign"]] },
+    { label: "SYSTEM", rows: [["Claim class", "hypothesis", true], ["Status", "needs_review", true], ["Confidence", "0.61", true]] }],
+    note: "Unverified hypothesis, not a confirmed attribution failure. Requires human review before it is treated as ground truth." },
+  mem_active: { status: "● Active", sections: [
+    { label: "SOURCE", rows: [["Origin", "Account-team statement"], ["Context", "Executive review · Aug 2026"]] },
+    { label: "VALIDITY", rows: [["Effective", "Aug 14, 2026 → Present"]] },
+    { label: "HISTORY", rows: [["Supersedes", "Grow coupon partnerships"]] },
+    { label: "SYSTEM", rows: [["Claim class", "account_preference", true], ["Confidence", "0.91", true], ["Authority", "0.85", true]] }] },
+  mem_superseded: { status: "Historical", sections: [
+    { label: "VALIDITY", rows: [["Effective", "Mar 2025 → Aug 14, 2026"]] },
+    { label: "HISTORY", rows: [["Superseded by", "Reduce coupon dependence"]] },
+    { label: "SYSTEM", rows: [["Status", "superseded", true], ["Confidence at retirement", "0.88", true]] }],
+    note: "Excluded from retrieval but preserved for audit. The system changed its mind without forgetting its history." },
+  decision: { status: "✓ Accepted", sections: [
+    { label: "TERMS", rows: [["Base fee", "$3,500"], ["Performance bonus", "10%"], ["Bonus basis", "Attributed revenue"]] },
+    { label: "MOTIVATED BY", rows: [["Strategy", "Reduce coupon dependence"], ["Uncertainty", "Attribution integrity anomaly"], ["Portfolio", "Hybrid terms outperform flat fees"]] }] },
+  outcome: { sections: [{ label: "RESULT", rows: [["Attributed revenue", "+$412"], ["Assessment", "Positive"]] }, { label: "SYSTEM", rows: [["Simulated", "true", true]] }], note: "Demo outcome. Simulated rather than observed from a real campaign cycle." },
+  portfolio_pattern: { sections: [
+    { label: "EVIDENCE", rows: [["Comparable cases", "31"], ["Positive outcomes", "24"], ["Hybrid success rate", "77%"]] },
+    { label: "SCOPE", rows: [["Visibility", "Privacy-safe AP portfolio"]] }],
+    note: "Synthetic cross-client pattern — clearly labeled, not real client data." },
+};
+
+const STEP_DEFS = [
+  { num: "01", title: "Account context", desc: "Retrieve current Northwind context" },
+  { num: "02", title: "Strategy update", desc: "Capture what changed" },
+  { num: "03", title: "Renewal decision", desc: "Evaluate Summit Sisters" },
+];
+
+function path(sx, sy, tx, ty) {
+  const dx = Math.max(70, (tx - sx) * 0.5);
+  return `M ${sx},${sy} C ${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`;
+}
+
+class Component extends DCLogic {
+  scrollRef = React.createRef();
+  state = {
+    hoveredId: null, selectedId: "client", messages: [], stage: 0, simulated: false,
+    zoom: 1, legendOpen: false, chatW: 380, inspectorW: 330, nodePos: {}, dragMode: null,
+    chatVisible: true, inspectorVisible: true,
+  };
+
+  toggleChat = () => this.setState((s) => ({ chatVisible: !s.chatVisible }));
+  toggleInspector = () => this.setState((s) => ({ inspectorVisible: !s.inspectorVisible }));
+
+  componentDidMount() {
+    const w = window.innerWidth || 1600;
+    this.setState({
+      chatW: Math.max(240, Math.round(Math.min(380, w * 0.28))),
+      inspectorW: Math.max(220, Math.round(Math.min(330, w * 0.23))),
+    });
+    this._move = (e) => this.onDragMove(e);
+    this._up = () => { if (this.state.dragMode) this.setState({ dragMode: null }); };
+    window.addEventListener("mousemove", this._move);
+    window.addEventListener("mouseup", this._up);
+  }
+  componentWillUnmount() {
+    window.removeEventListener("mousemove", this._move);
+    window.removeEventListener("mouseup", this._up);
+  }
+
+  onDragMove(e) {
+    const s = this.state;
+    if (s.dragMode === "chat") this.setState({ chatW: Math.max(240, Math.min(560, s.dragVal + (e.clientX - s.dragX))) });
+    else if (s.dragMode === "inspector") this.setState({ inspectorW: Math.max(220, Math.min(520, s.dragVal - (e.clientX - s.dragX))) });
+    else if (s.dragMode === "node") {
+      const dx = (e.clientX - s.dragX) / s.zoom, dy = (e.clientY - s.dragY) / s.zoom;
+      this.setState((st) => ({ nodePos: { ...st.nodePos, [s.dragNode]: { x: s.dragOX + dx, y: s.dragOY + dy } } }));
+    }
+  }
+
+  startResizeChat = (e) => { e.preventDefault(); this.setState({ dragMode: "chat", dragX: e.clientX, dragVal: this.state.chatW }); };
+  startResizeInspector = (e) => { e.preventDefault(); this.setState({ dragMode: "inspector", dragX: e.clientX, dragVal: this.state.inspectorW }); };
+  startNodeDrag = (id, x, y) => (e) => {
+    e.preventDefault(); e.stopPropagation();
+    this.setState({ dragMode: "node", dragNode: id, dragX: e.clientX, dragY: e.clientY, dragOX: x, dragOY: y });
+  };
+
+  toggleLegend = () => this.setState((s) => ({ legendOpen: !s.legendOpen }));
+  zoomIn = () => this.setState((s) => ({ zoom: Math.min(1.5, +(s.zoom + 0.12).toFixed(2)) }));
+  zoomOut = () => this.setState((s) => ({ zoom: Math.max(0.4, +(s.zoom - 0.12).toFixed(2)) }));
+  fitView = () => {
+    const el = this.scrollRef.current;
+    const w = 1980 + CARD_W + 60, h = 385 + 170 + 60;
+    if (!el) return this.setState({ zoom: 1 });
+    const scale = Math.min((el.clientWidth - 60) / w, (el.clientHeight - 60) / h, 1);
+    this.setState({ zoom: +Math.max(0.4, scale).toFixed(2) });
+    requestAnimationFrame(() => { el.scrollLeft = 0; el.scrollTop = 0; });
+  };
+  cleanUp = () => {
+    this.setState({ zoom: 1, hoveredId: null, nodePos: {} });
+    const el = this.scrollRef.current;
+    if (el) requestAnimationFrame(() => { el.scrollLeft = 0; el.scrollTop = 0; });
+  };
+  resetDemo = () => this.setState({ hoveredId: null, selectedId: "client", messages: [], stage: 0, simulated: false, nodePos: {} });
+
+  connected(id) {
+    const set = new Set([id]);
+    EDGES.forEach((e) => { if (e.s === id) set.add(e.t); if (e.t === id) set.add(e.s); });
+    return set;
+  }
+
+  addMsg(role, text) {
+    const user = role === "user";
+    this.setState((s) => ({ messages: [...s.messages, {
+      align: user ? "flex-end" : "flex-start",
+      bg: user ? "#18222f" : "transparent",
+      color: user ? "#e6ecf5" : "#b3c0d3",
+      padding: user ? "10px 14px" : "0",
+      maxWidth: user ? "88%" : "100%", text,
+    }] }));
+  }
+
+  runStep = (i) => () => {
+    const st = this.state;
+    if (i > st.stage) return;
+    if (i === 0) {
+      this.addMsg("user", "Bring me up to speed on Northwind.");
+      this.addMsg("assistant", "Northwind Outfitters is an existing creator partner focused on new-customer acquisition while reducing coupon dependence, accepting lower short-term ROAS. One open campaign: Summit Sisters, May 2026, with an unresolved attribution question.");
+      this.setState({ selectedId: "client", stage: Math.max(st.stage, 1), hoveredId: null });
+    } else if (i === 1) {
+      this.addMsg("user", "Northwind's strategy changed after last week's executive review — reduce coupon dependence and prioritize new-customer growth.");
+      this.addMsg("assistant", "Three candidate memories extracted and approved. The new strategy conflicts with the prior belief, so it supersedes it — the earlier strategy is retained as history.");
+      this.setState({ selectedId: "mem_active", stage: Math.max(st.stage, 2), hoveredId: null });
+    } else if (i === 2) {
+      this.addMsg("user", "Summit Sisters wants $6,000 for another campaign. Should we renew them?");
+      this.setState({ selectedId: "decision", stage: Math.max(st.stage, 3), hoveredId: null });
+    }
+  };
+
+  step4 = () => {
+    if (this.state.simulated) return;
+    this.addMsg("assistant", "Outcome recorded: +$412 attributed revenue. Portfolio evidence updated from 31 to 32 comparable cases.");
+    this.setState({ selectedId: "portfolio_pattern", simulated: true, hoveredId: null });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const focus = s.hoveredId || s.selectedId;
+    const conn = focus ? this.connected(focus) : null;
+    const isolating = Boolean(s.hoveredId || s.selectedId);
+
+    const pos = {};
+    NODES.forEach((n) => { const o = s.nodePos[n.id]; pos[n.id] = o || { x: n.x, y: n.y }; });
+
+    const nodes = NODES.map((n) => {
+      const c = C[n.c], p = pos[n.id];
+      const inFocus = !conn || conn.has(n.id);
+      const isFocus = n.id === focus;
+      let detail = n.detail;
+      if (n.detailKey === "evidence") detail = (s.simulated ? "31 → 32" : "31") + " comparable cases";
+      let status = n.status;
+      if (n.statusKey === "outcome") status = s.simulated ? "✓ Simulated result" : "○ Not yet observed";
+      return {
+        id: n.id, x: p.x, y: p.y,
+        typeLabel: n.type, title: n.title, detail: detail || null,
+        status: status || null, synthetic: Boolean(n.synthetic),
+        bg: isFocus ? c.node : n.dim ? C.hist.node : "#0c1017",
+        border: isFocus ? c.border : "#151b25",
+        typeColor: n.dim ? "#4d596d" : c.text,
+        titleColor: n.dim ? "#7d889b" : "#e6ecf5",
+        statusColor: n.dim ? "#5d6b81" : c.text,
+        opacity: isolating ? (inFocus ? 1 : 0.3) : n.dim ? 0.7 : 1,
+        shadow: isFocus ? `0 0 0 1px ${c.border}, 0 0 0 4px ${c.glow}` : "none",
+        detailAnim: n.detailKey === "evidence" && s.simulated ? "countpop 0.7s ease" : "none",
+        onEnter: () => this.setState({ hoveredId: n.id }),
+        onLeave: () => this.setState({ hoveredId: null }),
+        onClick: () => this.setState({ selectedId: n.id }),
+        onDragStart: this.startNodeDrag(n.id, p.x, p.y),
+      };
+    });
+
+    const edges = EDGES.map((e) => {
+      const a = pos[e.s], b = pos[e.t], c = C[e.c];
+      const sx = a.x + CARD_W, sy = a.y + ANCHOR_Y, tx = b.x, ty = b.y + ANCHOR_Y;
+      const relevant = !conn || (conn.has(e.s) && conn.has(e.t));
+      const touching = conn && (e.s === focus || e.t === focus);
+      return {
+        id: e.id, d: path(sx, sy, tx, ty), color: c.line,
+        width: touching ? 1.8 : 1.2,
+        dash: e.dashed ? "4 4" : "0",
+        marker: "mk-" + e.c,
+        anim: e.id === "e13" && s.simulated ? "animation: edgeflow 0.7s linear infinite; stroke-dasharray: 5 5;" : "",
+        opacity: isolating ? (relevant ? 1 : 0.12) : 0.5,
+        showLabel: Boolean(touching || e.always),
+        label: e.label, labelColor: c.text,
+        lx: (sx + tx) / 2, ly: (sy + ty) / 2 - 7,
+      };
+    });
+
+    const markers = Object.keys(C).map((k) => ({ id: "mk-" + k, color: C[k].line }));
+
+    const nodeDef = NODES.find((n) => n.id === s.selectedId) || NODES[1];
+    const insp = INSPECT[nodeDef.id] || { sections: [] };
+    const selSections = (insp.sections || []).map((sec) => ({
+      label: sec.label,
+      rows: sec.rows.map((r) => ({ label: r[0], value: r[1], font: r[2] ? "'IBM Plex Mono',monospace" : "inherit" })),
+    }));
+
+    const steps = STEP_DEFS.map((d, i) => {
+      const done = s.stage > i, current = s.stage === i;
+      return {
+        num: d.num, title: d.title, desc: d.desc,
+        status: done ? "✓ Complete" : current ? "● Current" : "○ Next",
+        statusColor: done ? "#4fb98d" : current ? "#5b9fd4" : "#4f5d75",
+        titleColor: current ? "#e6ecf5" : done ? "#c3cfe0" : "#8c98ad",
+        bg: current ? "#111823" : "transparent",
+        onClick: this.runStep(i),
+      };
+    });
+
+    const activity = [
+      { title: "Account graph loaded", text: "Northwind case-study data seeded.", time: "09:02:11", dot: "#3d4859" },
+      { title: "Candidate memories extracted", text: "Three claims proposed from account-team conversation.", time: "09:14:33", dot: "#5b9fd4" },
+      { title: "Strategy updated", text: "New strategy superseded prior coupon-growth strategy.", time: "09:14:52", dot: "#8896ac" },
+      { title: "Decision captured", text: "Renew Summit Sisters on hybrid compensation.", time: "09:21:07", dot: "#4fb98d" },
+    ];
+    if (s.simulated) activity.push({ title: "Outcome recorded", text: "Portfolio evidence updated 31 → 32 cases.", time: "09:22:40", dot: "#8f83c9", anim: "fadeup 0.4s ease" });
+
+    return {
+      steps, messages: s.messages,
+      evidenceShown: s.stage >= 3,
+      evidenceCount: s.simulated ? "32" : "31",
+      showSimulate: s.stage >= 3 && !s.simulated,
+      step4: this.step4, resetDemo: this.resetDemo,
+      nodes, edges, markers,
+      worldW: 1980 + CARD_W + 60, worldH: 385 + 170 + 60,
+      scaledW: (1980 + CARD_W + 60) * s.zoom, scaledH: (385 + 170 + 60) * s.zoom,
+      zoom: s.zoom, scrollRef: this.scrollRef,
+      zoomIn: this.zoomIn, zoomOut: this.zoomOut, fitView: this.fitView, cleanUp: this.cleanUp,
+      legendOpen: s.legendOpen, legendLabel: s.legendOpen ? "Hide legend" : "Legend", toggleLegend: this.toggleLegend,
+      chatW: s.chatW, inspectorW: s.inspectorW,
+      chatVisible: s.chatVisible, inspectorVisible: s.inspectorVisible,
+      toggleChat: this.toggleChat, toggleInspector: this.toggleInspector,
+      chatToggleColor: s.chatVisible ? "#94a3ba" : "#4f5d75",
+      inspectorToggleColor: s.inspectorVisible ? "#94a3ba" : "#4f5d75",
+      startResizeChat: this.startResizeChat, startResizeInspector: this.startResizeInspector,
+      selTitle: nodeDef.title, selType: nodeDef.type,
+      selStatus: insp.status || null,
+      selStatusColor: C[nodeDef.c].text,
+      selSections, selNote: insp.note || null,
+      activity: activity.map((a) => ({ ...a, anim: a.anim || "none" })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

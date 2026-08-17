@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @keyframes edgeflow { to { stroke-dashoffset: -24; } }
+    @keyframes nodepulse { 0%,100% { box-shadow: 0 0 0 1px var(--pc), 0 0 22px var(--pg); } 50% { box-shadow: 0 0 0 1.5px var(--pc), 0 0 34px var(--pg); } }
+    body { margin: 0; background: #060a12; }
+    * { box-sizing: border-box; }
+    ::selection { background: rgba(52,255,176,0.3); }
+    .apig-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+    .apig-scroll::-webkit-scrollbar-track { background: transparent; }
+    .apig-scroll::-webkit-scrollbar-thumb { background: #1c2a40; border-radius: 4px; }
+  </style>
+</helmet>
+<div style="display:flex;flex-direction:column;height:100vh;width:100%;background:#070b14;font-family:'Plus Jakarta Sans',ui-sans-serif,system-ui,sans-serif;color:#dce8f5;font-size:15px;line-height:1.5;overflow:hidden">
+
+  <header style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 22px;background:#0a1120;border-bottom:1px solid #17233a">
+    <div style="display:flex;align-items:baseline;gap:14px;min-width:0">
+      <div style="display:flex;align-items:center;gap:9px">
+        <span style="width:9px;height:9px;border-radius:2px;background:#4bc99a;box-shadow:0 0 8px rgba(75,201,154,0.6)"></span>
+        <h1 style="font-size:16px;font-weight:700;letter-spacing:0.02em;margin:0;color:#eef6ff">AP Intelligence Graph</h1>
+      </div>
+      <span style="font-size:13px;color:#8098bd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">the living memory of AP's partnership decisions, relationships &amp; outcomes</span>
+    </div>
+    <button onclick="{{ resetView }}" style="flex:none;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.03em;color:#8fb4ff;background:rgba(45,212,255,0.06);border:1px solid #1f3a5c;border-radius:6px;padding:7px 14px;cursor:pointer">⟲ RESET VIEW</button>
+  </header>
+
+  <div style="flex:1;display:flex;min-height:0">
+
+    <!-- CHAT -->
+    <section style="width:{{ chatW }}px;flex:none;min-width:260px;display:flex;flex-direction:column;background:#0a1120;border-right:1px solid #14203a;min-height:0">
+      <div style="padding:14px 16px 10px;border-bottom:1px solid #14203a">
+        <h2 style="margin:0;font-size:12px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#7c93b8">Agent Conversation</h2>
+      </div>
+      <div class="apig-scroll" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ messages }}" as="m" hint-placeholder-count="0">
+          <div style="display:flex;justify-content:{{ m.align }}">
+            <div style="max-width:{{ m.maxWidth }};border-radius:14px;padding:9px 13px;font-size:14px;line-height:1.5;white-space:pre-line;background:{{ m.bg }};color:{{ m.color }}">{{ m.text }}</div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ showEmptyHint }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:13px;color:#5c7292;font-style:italic">Run the scripted demo below to see memory flow into the graph.</div>
+        </sc-if>
+
+        <sc-if value="{{ step3Done }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid #3a5a4d;border-radius:12px;overflow:hidden;background:#0c1520">
+
+            <div style="padding:13px 15px;border-bottom:1px solid rgba(255,255,255,0.06)">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <span style="width:21px;height:21px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(79,168,216,0.14);color:#6bc4ea;font-size:12px">↗</span>
+                <span style="font-size:11px;font-weight:700;letter-spacing:0.07em;color:#6bc4ea;text-transform:uppercase">Observed performance</span>
+              </div>
+              <div style="font-size:11px;color:#6b83a8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Commercial ask</div>
+              <div style="font-size:15px;margin-bottom:12px">
+                <span style="color:#eaf2fb;font-weight:700">$6,000 proposed</span>
+                <span style="color:#5c7292"> vs </span>
+                <span style="color:#8fa5c8">$4,200 prior fee</span>
+                <span style="color:#e0a15c;font-weight:600"> +42.9%</span>
+              </div>
+              <div style="font-size:11px;color:#6b83a8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Prior performance</div>
+              <div style="display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;color:#c7d4e6"><span>September 2025</span><span>$4,000 → $9,840</span><span style="color:#5fd6ab;font-weight:600">2.46x</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;color:#c7d4e6"><span>February 2026</span><span>$4,000 → $10,120</span><span style="color:#5fd6ab;font-weight:600">2.53x</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;color:#c7d4e6"><span>May 2026</span><span>$4,200 → $31,240</span><span style="color:#5fd6ab;font-weight:600">7.44x</span></div>
+            </div>
+
+            <div style="padding:13px 15px;border-bottom:1px solid rgba(255,255,255,0.06)">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <span style="width:21px;height:21px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(79,168,216,0.14);color:#6bc4ea;font-size:12px">●</span>
+                <span style="font-size:11px;font-weight:700;letter-spacing:0.07em;color:#6bc4ea;text-transform:uppercase">Relevant governed memory</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:5px;font-size:13.5px;line-height:1.5">
+                <div><span style="color:#7fb8d9">relationship status:</span> <span style="color:#eaf2fb;font-weight:600">existing creator partner</span></div>
+                <div><span style="color:#7fb8d9">partnership strategy:</span> <span style="color:#eaf2fb;font-weight:600">reduce coupon dependence</span></div>
+                <div><span style="color:#7fb8d9">primary growth objective:</span> <span style="color:#eaf2fb;font-weight:600">new customer acquisition</span></div>
+                <div><span style="color:#7fb8d9">accepts tradeoff:</span> <span style="color:#eaf2fb;font-weight:600">lower short-term ROAS</span></div>
+                <div><span style="color:#7fb8d9">negotiation history:</span> <span style="color:#eaf2fb;font-weight:600">Jessica Moreno has negotiated terms with Summit Sisters across all 3 prior campaigns.</span></div>
+              </div>
+            </div>
+
+            <div style="padding:13px 15px;background:rgba(217,162,86,0.05)">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
+                <span style="width:21px;height:21px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(217,162,86,0.16);color:#e0b06c;font-size:12px">▲</span>
+                <span style="font-size:11px;font-weight:700;letter-spacing:0.07em;color:#e0b06c;text-transform:uppercase">Measurement caution</span>
+              </div>
+              <div style="font-size:13.5px;line-height:1.55;color:#d8c9ac">May 2026 recorded 1,847 promo-code redemptions from 385 tracked link clicks. This may indicate off-link code distribution or promo-code leakage. Unverified hypothesis — not a confirmed attribution failure.</div>
+              <div style="margin-top:7px;font-size:11.5px;color:#b89860">unverified hypothesis · confidence 0.61</div>
+            </div>
+
+          </div>
+        </sc-if>
+      </div>
+      <div style="padding:12px 16px;border-top:1px solid #14203a;display:flex;flex-direction:column;gap:6px">
+        <button onclick="{{ step1 }}" disabled="{{ step1Done }}" style="text-align:left;font-size:13px;color:{{ step1Color }};background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:9px 12px;cursor:pointer;opacity:{{ step1Op }}">Bring me up to speed on Northwind.</button>
+        <button onclick="{{ step2 }}" disabled="{{ step2Disabled }}" style="text-align:left;font-size:13px;color:{{ step2Color }};background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:9px 12px;cursor:pointer;opacity:{{ step2Op }}">Northwind's strategy changed — reduce coupon dependence, prioritize new-customer growth.</button>
+        <button onclick="{{ step3 }}" disabled="{{ step3Disabled }}" style="text-align:left;font-size:13px;color:{{ step3Color }};background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:9px 12px;cursor:pointer;opacity:{{ step3Op }}">Summit Sisters wants $6,000 for another campaign. Should we renew them?</button>
+        <sc-if value="{{ showSimulateBtn }}" hint-placeholder-val="{{ false }}">
+          <button onclick="{{ step4 }}" style="text-align:left;font-size:13px;color:#a9e8cc;background:rgba(255,255,255,0.045);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:9px 12px;cursor:pointer;margin-top:2px">Simulate future outcome (demo only)</button>
+        </sc-if>
+      </div>
+    </section>
+
+    <div onmousedown="{{ startResizeChat }}" style="width:6px;flex:none;cursor:col-resize;background:transparent;position:relative;z-index:5" onmouseover="this.style.background='rgba(111,196,234,0.25)'" onmouseout="this.style.background='transparent'"></div>
+
+    <!-- GRAPH -->
+    <section style="flex:1;position:relative;background:#070b14;min-width:0">
+      <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:64px 64px;pointer-events:none"></div>
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(45,150,200,0.06),transparent 70%);pointer-events:none"></div>
+
+      <div class="apig-scroll" ref="{{ scrollRef }}" style="position:absolute;inset:0;overflow:auto;padding:60px">
+        <div style="position:relative;width:{{ scaledW }}px;height:{{ scaledH }}px">
+        <div style="position:relative;width:{{ worldW }}px;height:{{ worldH }}px;transform:scale({{ zoom }});transform-origin:top left">
+          <svg width="{{ worldW }}" height="{{ worldH }}" style="position:absolute;top:0;left:0;overflow:visible">
+            <defs>
+              <sc-for list="{{ markerColors }}" as="mc" hint-placeholder-count="6">
+                <marker id="{{ mc.id }}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="{{ mc.color }}"></path>
+                </marker>
+              </sc-for>
+            </defs>
+            <sc-for list="{{ edges }}" as="e" hint-placeholder-count="13">
+              <g style="opacity:{{ e.opacity }};transition:opacity 0.25s">
+                <path d="{{ e.d }}" fill="none" stroke="{{ e.color }}" stroke-width="{{ e.width }}" stroke-dasharray="{{ e.dash }}" marker-end="url(#{{ e.markerId }})" style="{{ e.animStyle }};filter:{{ e.glow }}"></path>
+                <rect x="{{ e.lx }}" y="{{ e.ly }}" width="{{ e.lw }}" height="17" rx="4" fill="#0a1120" stroke="{{ e.color }}" stroke-opacity="0.35"></rect>
+                <text x="{{ e.tx }}" y="{{ e.ty }}" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="{{ e.color }}" text-anchor="middle" letter-spacing="0.4">{{ e.label }}</text>
+              </g>
+            </sc-for>
+          </svg>
+
+          <sc-for list="{{ nodes }}" as="n" hint-placeholder-count="11">
+            <div onmouseenter="{{ n.onEnter }}" onmouseleave="{{ n.onLeave }}" onclick="{{ n.onClick }}" onmousedown="{{ n.onDragStart }}"
+              style="position:absolute;left:{{ n.x }}px;top:{{ n.y }}px;width:232px;cursor:grab;user-select:none;border-radius:8px;padding:12px 14px 12px 16px;transition:opacity 0.25s, box-shadow 0.25s;opacity:{{ n.opacity }};background:{{ n.bg }};border:1px solid {{ n.border }};border-left:3px solid {{ n.accentBorder }};box-shadow:{{ n.shadow }}">
+              <div style="font-size:9.5px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.08em;text-transform:uppercase;color:{{ n.accent }};opacity:0.8;margin-bottom:6px">{{ n.typeLabel }}</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:15px;color:{{ n.accent }};line-height:1">{{ n.icon }}</span>
+                <span style="font-size:15px;font-weight:600;line-height:1.3;color:{{ n.textColor }};white-space:pre-line">{{ n.label }}</span>
+              </div>
+              <div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+                <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:10px;font-family:'IBM Plex Mono',monospace;padding:2px 7px;border-radius:9px;background:{{ n.badgeBg }};color:{{ n.accent }};border:1px solid {{ n.border }}">{{ n.badge }}</span>
+                </sc-if>
+                <sc-if value="{{ n.synthetic }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:9px;font-weight:700;letter-spacing:0.06em;padding:2px 6px;border-radius:9px;background:#2a1a4a;color:#d7bfff">SYNTHETIC</span>
+                </sc-if>
+              </div>
+              <sc-if value="{{ n.sub }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:6px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:#6b83a8">{{ n.sub }}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        </div>
+      </div>
+
+      <button onclick="{{ toggleLegend }}" style="position:absolute;top:16px;right:16px;background:#0a1120e6;border:1px solid #17233a;border-radius:7px;padding:7px 12px;font-size:11px;color:#8fa5c8;cursor:pointer;backdrop-filter:blur(4px)">{{ legendToggleLabel }}</button>
+
+      <sc-if value="{{ legendOpen }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;top:52px;right:16px;background:#0a1120e6;border:1px solid #17233a;border-radius:8px;padding:12px 14px;font-size:11.5px;color:#8fa5c8;min-width:190px;backdrop-filter:blur(4px)">
+          <div style="font-weight:600;color:#c7d8f0;margin-bottom:7px;letter-spacing:0.04em;font-size:11px;text-transform:uppercase">Legend</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:#4fa8d8"></span> structural / strategy</div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:#4bc99a"></span> decision / outcome</div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:#d9a256"></span> hypothesis / risk</div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:#9a82d6"></span> portfolio evidence</div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:#4a6a94;opacity:0.6"></span> superseded / dashed = historical</div>
+          </div>
+          <div style="margin-top:9px;padding-top:8px;border-top:1px solid #17233a;color:#5c7292">hover a node to trace its connections</div>
+        </div>
+      </sc-if>
+
+      <div style="position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;background:#0a1120e6;border:1px solid #17233a;border-radius:8px;overflow:hidden;backdrop-filter:blur(4px)">
+        <button onclick="{{ zoomIn }}" title="Zoom in" style="width:32px;height:32px;border:none;border-bottom:1px solid #17233a;background:transparent;color:#c7d8f0;font-size:16px;cursor:pointer">+</button>
+        <button onclick="{{ zoomOut }}" title="Zoom out" style="width:32px;height:32px;border:none;border-bottom:1px solid #17233a;background:transparent;color:#c7d8f0;font-size:16px;cursor:pointer">–</button>
+        <button onclick="{{ fitView }}" title="Fit view" style="width:32px;height:32px;border:none;border-bottom:1px solid #17233a;background:transparent;color:#c7d8f0;font-size:13px;cursor:pointer">⛶</button>
+        <button onclick="{{ cleanUp }}" title="Clean up layout" style="width:32px;height:32px;border:none;background:transparent;color:#c7d8f0;font-size:13px;cursor:pointer">↺</button>
+      </div>
+    </section>
+
+    <div onmousedown="{{ startResizeInspector }}" style="width:6px;flex:none;cursor:col-resize;background:transparent;position:relative;z-index:5" onmouseover="this.style.background='rgba(111,196,234,0.25)'" onmouseout="this.style.background='transparent'"></div>
+
+    <!-- INSPECTOR + ACTIVITY -->
+    <section style="width:{{ inspectorW }}px;flex:none;min-width:260px;display:flex;flex-direction:column;background:#0a1120;border-left:1px solid #14203a;min-height:0">
+      <div class="apig-scroll" style="height:56%;overflow-y:auto;padding:16px;border-bottom:1px solid #14203a">
+        <sc-if value="{{ hasSelection }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <span style="font-size:16px;color:{{ selAccent }}">{{ selIcon }}</span>
+            <h3 style="margin:0;font-size:14px;font-weight:600;color:#eef6ff;white-space:pre-line">{{ selLabel }}</h3>
+          </div>
+          <div style="font-size:10.5px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.08em;text-transform:uppercase;color:#5c7292;margin:5px 0 12px">{{ selType }}</div>
+          <sc-for list="{{ inspectorRows }}" as="r" hint-placeholder-count="4">
+            <div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:12.5px;border-bottom:1px solid #131e33">
+              <span style="color:#6b83a8">{{ r.label }}</span>
+              <span style="color:#c7d8f0;text-align:right;font-family:'IBM Plex Mono',monospace">{{ r.value }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ selNote }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:12px;border-radius:6px;padding:9px 11px;font-size:11.5px;line-height:1.5;background:{{ selNoteBg }};border:1px solid {{ selNoteBorder }};color:{{ selNoteColor }}">{{ selNote }}</div>
+          </sc-if>
+        </sc-if>
+        <sc-if value="{{ hasSelection }}" hint-placeholder-val="{{ true }}">
+        </sc-if>
+      </div>
+      <div class="apig-scroll" style="flex:1;overflow-y:auto;padding:14px 16px;min-height:0">
+        <h3 style="margin:0 0 10px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#5c7292">Activity</h3>
+        <sc-for list="{{ activity }}" as="a" hint-placeholder-count="6">
+          <div style="padding:8px 0;border-bottom:1px solid #10192b">
+            <div style="display:flex;align-items:baseline;gap:7px;margin-bottom:2px">
+              <span style="font-size:11.5px;color:#7c93b8;font-weight:600">{{ a.time }}</span>
+              <span style="font-size:10px;letter-spacing:0.04em;text-transform:uppercase;color:#5c7292">{{ a.type }}</span>
+            </div>
+            <div style="font-size:12.5px;color:#a9bdd9;line-height:1.4">{{ a.text }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const CARD_W = 232, CARD_H_MID = 46;
+
+const NODE_DEFS = [
+  { id: "team_member", label: "Jordan Lee", typeLabel: "team member", icon: "◈", x: 0, y: 150, colorKey: "slate", sub: "AP Account Lead" },
+  { id: "client", label: "Northwind", typeLabel: "client", icon: "◆", x: 280, y: 150, colorKey: "blue", sub: "Coupon & content partnership" },
+  { id: "creator", label: "Northwind Creator Network", typeLabel: "creator", icon: "◇", x: 560, y: 40, colorKey: "slate", sub: "Platform: Instagram / TikTok" },
+  { id: "publisher", label: "Summit Sisters", typeLabel: "publisher", icon: "▣", x: 560, y: 270, colorKey: "slate", sub: "Platform: coupon site" },
+  { id: "campaign", label: "Summit Sisters — May 2026", typeLabel: "campaign", icon: "▶", x: 840, y: 150, colorKey: "slate", sub: "1,847 redemptions / 385 clicks" },
+  { id: "mem_hypothesis", label: "Attribution: promo-code leakage suspected", typeLabel: "memory claim", icon: "▲", x: 1120, y: 0, colorKey: "amber", badge: "hypothesis" },
+  { id: "mem_active", label: "Strategy: reduce coupon dependence, grow new customers", typeLabel: "memory claim", icon: "●", x: 1120, y: 155, colorKey: "blue", badge: "active" },
+  { id: "mem_superseded", label: "Strategy: aggressively grow coupon partnerships", typeLabel: "memory claim", icon: "○", x: 1120, y: 320, colorKey: "slateDim", badge: "superseded", dim: true },
+  { id: "decision", label: "Renew & test: $3,500 + 10% bonus", typeLabel: "decision", icon: "✓", x: 1440, y: 155, colorKey: "green", badge: "accepted" },
+  { id: "outcome", label: "+$412 attributed revenue", typeLabel: "outcome", icon: "↗", x: 1720, y: 155, colorKey: "green", badgeKey: "simBadge" },
+  { id: "portfolio_pattern", label: "Coupon-dependent creators underperform on new-customer growth", typeLabel: "portfolio pattern", icon: "▦", x: 1720, y: 335, colorKey: "purple", badgeKey: "evidenceBadge", synthetic: true },
+];
+
+const EDGE_DEFS = [
+  { id: "e1", s: "team_member", t: "client", label: "manages", ck: "slate" },
+  { id: "e2", s: "client", t: "campaign", label: "has campaign", ck: "slate" },
+  { id: "e3", s: "client", t: "creator", label: "has relationship", ck: "slate" },
+  { id: "e4", s: "creator", t: "publisher", label: "worked with", ck: "slate" },
+  { id: "e5", s: "publisher", t: "campaign", label: "applies to", ck: "slate" },
+  { id: "e6", s: "client", t: "mem_active", label: "has strategy", ck: "blue" },
+  { id: "e7", s: "mem_active", t: "mem_superseded", label: "supersedes", ck: "red", dashed: true },
+  { id: "e8", s: "campaign", t: "mem_hypothesis", label: "has risk", ck: "amber", dashed: true },
+  { id: "e9", s: "decision", t: "mem_active", label: "motivated by", ck: "blue", dashed: true },
+  { id: "e10", s: "decision", t: "mem_hypothesis", label: "motivated by", ck: "amber", dashed: true },
+  { id: "e11", s: "portfolio_pattern", t: "decision", label: "supports", ck: "purple" },
+  { id: "e12", s: "team_member", t: "decision", label: "made decision", ck: "green" },
+  { id: "e13", s: "decision", t: "outcome", label: "resulted in", ck: "green", animated: true },
+];
+
+const PALETTE = {
+  slate: { border: "#3d5478", surface: "#0e1522", text: "#c7d8f0", accent: "#8fa5c8", glow: "rgba(80,130,200,0.28)" },
+  slateDim: { border: "#26344a", surface: "#0b101a", text: "#5c7292", accent: "#5c7292", glow: "rgba(80,110,160,0.12)" },
+  blue: { border: "#4fa8d8", surface: "#0d1a26", text: "#dceefb", accent: "#6bc4ea", glow: "rgba(79,168,216,0.4)" },
+  green: { border: "#4bc99a", surface: "#0d1f1c", text: "#dcf5ea", accent: "#5fd6ab", glow: "rgba(75,201,154,0.4)" },
+  amber: { border: "#d9a256", surface: "#1c1710", text: "#f5e8d3", accent: "#e0b06c", glow: "rgba(217,162,86,0.35)" },
+  purple: { border: "#9a82d6", surface: "#151428", text: "#e9e5f7", accent: "#ac96e0", glow: "rgba(154,130,214,0.35)" },
+  red: { border: "#d9707f", surface: "#1c1216", text: "#f7e3e6", accent: "#e08b96", glow: "rgba(217,112,127,0.35)" },
+};
+
+const EDGE_COLOR = { slate: "#4a6a94", blue: "#4fa8d8", green: "#4bc99a", amber: "#d9a256", purple: "#9a82d6", red: "#d9707f" };
+
+const INSPECTOR_DATA = {
+  team_member: { rows: [["Role", "Account Lead"], ["Client", "Northwind"], ["Tenure", "3 yrs"]] },
+  client: { rows: [["Industry", "eCommerce"], ["Relationship", "active"], ["Open campaigns", "1"]] },
+  creator: { rows: [["Platform", "Instagram / TikTok"], ["Synthetic", "no"]] },
+  publisher: { rows: [["Platform", "Coupon site"], ["Synthetic", "no"]] },
+  campaign: { rows: [["Flat fee", "$3,200"], ["Link clicks", "385"], ["Code redemptions", "1,847"], ["Attributed revenue", "$8,940"]] },
+  mem_hypothesis: { rows: [["Claim class", "hypothesis"], ["Status", "needs review"], ["Confidence", "0.58"], ["Source", "derived"]], note: "Unverified hypothesis, not a confirmed fact. Requires human review before being treated as ground truth.", noteKey: "amber" },
+  mem_active: { rows: [["Claim class", "account preference"], ["Status", "active"], ["Confidence", "0.91"], ["Authority", "0.85"], ["Valid from", "2026-08-10"]] },
+  mem_superseded: { rows: [["Claim class", "account preference"], ["Status", "superseded"], ["Confidence", "0.88"], ["Superseded by", "mem_active"]], note: "Historical belief. Excluded from normal retrieval, but preserved for audit.", noteKey: "slate" },
+  decision: { rows: [["Status", "accepted"], ["Base fee", "$3,500"], ["Performance bonus", "10%"], ["Bonus basis", "attributed revenue"]] },
+  outcome: { rows: [["Result", "positive"], ["Simulated", "yes"], ["Δ revenue", "+$412"]] },
+  portfolio_pattern: { rows: [["Evidence count", "31 → 32 cases"], ["Positive outcomes", "24"], ["Flat-fee success", "77%"]], note: "Synthetic AP portfolio pattern — clearly labeled, not real client data.", noteKey: "purple" },
+};
+
+const ACTIVITY_SEED = [
+  { color: "#4a6a94", type: "SEED", text: "Loaded Northwind account graph from case-study data.", time: "09:02:11" },
+  { color: "#2dd4ff", type: "CREATE", text: "Extracted 3 candidate memories from account-team conversation.", time: "09:14:33" },
+  { color: "#ff5c7a", type: "SUPERSEDE", text: "New strategy claim superseded prior coupon-growth strategy.", time: "09:14:52" },
+  { color: "#34ffb0", type: "DECISION", text: "Accepted recommendation: renegotiate & test, $3,500 + 10% bonus.", time: "09:21:07" },
+  { color: "#34ffb0", type: "OUTCOME", text: "Simulated outcome recorded: +$412 attributed revenue.", time: "09:22:40" },
+  { color: "#b98bff", type: "PROMOTE", text: "Portfolio pattern evidence count updated 31 → 32.", time: "09:22:41" },
+];
+
+function edgePath(sx, sy, tx, ty) {
+  const dx = Math.max(60, (tx - sx) * 0.5);
+  return `M ${sx},${sy} C ${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`;
+}
+
+class Component extends DCLogic {
+  scrollRef = React.createRef();
+  state = {
+    hoveredId: null,
+    selectedId: "client",
+    messages: [],
+    step1Done: false,
+    step2Done: false,
+    step3Done: false,
+    outcomeSimulated: false,
+    zoom: 1,
+    legendOpen: false,
+    chatW: 340,
+    inspectorW: 310,
+    nodePos: {},
+    dragMode: null,
+  };
+
+  componentDidMount() {
+    this._onMove = (e) => this.handleDragMove(e);
+    this._onUp = () => this.handleDragEnd();
+    window.addEventListener("mousemove", this._onMove);
+    window.addEventListener("mouseup", this._onUp);
+  }
+  componentWillUnmount() {
+    window.removeEventListener("mousemove", this._onMove);
+    window.removeEventListener("mouseup", this._onUp);
+  }
+
+  handleDragMove(e) {
+    const s = this.state;
+    if (s.dragMode === "chat") {
+      this.setState({ chatW: Math.max(260, Math.min(560, s.dragStartVal + (e.clientX - s.dragStartX))) });
+    } else if (s.dragMode === "inspector") {
+      this.setState({ inspectorW: Math.max(260, Math.min(520, s.dragStartVal - (e.clientX - s.dragStartX))) });
+    } else if (s.dragMode === "node") {
+      const dx = (e.clientX - s.dragStartX) / s.zoom;
+      const dy = (e.clientY - s.dragStartY) / s.zoom;
+      this.setState((st) => ({ nodePos: { ...st.nodePos, [s.dragNodeId]: { x: s.dragOrigX + dx, y: s.dragOrigY + dy } } }));
+    }
+  }
+  handleDragEnd() {
+    if (this.state.dragMode) this.setState({ dragMode: null });
+  }
+
+  startResizeChat = (e) => {
+    e.preventDefault();
+    this.setState({ dragMode: "chat", dragStartX: e.clientX, dragStartVal: this.state.chatW });
+  };
+  startResizeInspector = (e) => {
+    e.preventDefault();
+    this.setState({ dragMode: "inspector", dragStartX: e.clientX, dragStartVal: this.state.inspectorW });
+  };
+  startNodeDrag = (id, x, y) => (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    this.setState({ dragMode: "node", dragNodeId: id, dragStartX: e.clientX, dragStartY: e.clientY, dragOrigX: x, dragOrigY: y });
+  };
+
+  toggleLegend = () => this.setState((s) => ({ legendOpen: !s.legendOpen }));
+  zoomIn = () => this.setState((s) => ({ zoom: Math.min(1.6, +(s.zoom + 0.15).toFixed(2)) }));
+  zoomOut = () => this.setState((s) => ({ zoom: Math.max(0.4, +(s.zoom - 0.15).toFixed(2)) }));
+  fitView = () => {
+    const el = this.scrollRef && this.scrollRef.current;
+    const worldW = 1720 + CARD_W + 40, worldH = 335 + 120 + 40;
+    if (el) {
+      const scale = Math.min((el.clientWidth - 40) / worldW, (el.clientHeight - 40) / worldH, 1);
+      this.setState({ zoom: +Math.max(0.4, scale).toFixed(2) });
+      requestAnimationFrame(() => { el.scrollLeft = 0; el.scrollTop = 0; });
+    } else {
+      this.setState({ zoom: 1 });
+    }
+  };
+  cleanUp = () => {
+    this.setState({ zoom: 1, hoveredId: null, nodePos: {} });
+    const el = this.scrollRef && this.scrollRef.current;
+    if (el) requestAnimationFrame(() => { el.scrollLeft = 0; el.scrollTop = 0; });
+  };
+
+  focusId() { return this.state.hoveredId || this.state.selectedId; }
+
+  connectedSet(id) {
+    const set = new Set([id]);
+    EDGE_DEFS.forEach((e) => {
+      if (e.s === id) set.add(e.t);
+      if (e.t === id) set.add(e.s);
+    });
+    return set;
+  }
+
+  addMsg(role, text) {
+    const align = role === "user" ? "flex-end" : "flex-start";
+    const bg = role === "user" ? "#1a2a3d" : "transparent";
+    const color = role === "user" ? "#eaf2fb" : "#b7c6dc";
+    const maxWidth = role === "user" ? "85%" : "100%";
+    this.setState((s) => ({ messages: [...s.messages, { align, bg, color, maxWidth, text }] }));
+  }
+
+  step1 = () => {
+    if (this.state.step1Done) return;
+    this.addMsg("user", "Bring me up to speed on Northwind.");
+    this.addMsg("assistant", "Northwind — active memory: strategy is reduce coupon dependence, prioritize new-customer growth. 1 open campaign (Summit Sisters, May 2026) with an unresolved attribution hypothesis.");
+    this.setState({ selectedId: "client", step1Done: true, hoveredId: null });
+  };
+
+  step2 = () => {
+    if (!this.state.step1Done || this.state.step2Done) return;
+    this.addMsg("user", "Northwind's strategy changed after last week's executive review — reduce coupon dependence, prioritize new-customer growth.");
+    this.addMsg("assistant", "Proposed 3 candidate memories. Approved — the new strategy conflicts with the prior belief, so it SUPERSEDES it. History preserved, not deleted.");
+    this.setState({ selectedId: "mem_active", step2Done: true, hoveredId: null });
+  };
+
+  step3 = () => {
+    if (!this.state.step2Done || this.state.step3Done) return;
+    this.addMsg("user", "Summit Sisters wants $6,000 for another campaign. Should we renew them?");
+    this.setState({ selectedId: "decision", step3Done: true, hoveredId: null });
+  };
+
+  step4 = () => {
+    if (this.state.outcomeSimulated) return;
+    this.addMsg("assistant", "Simulated outcome: +$412 attributed revenue. Portfolio pattern evidence count 31 → 32.");
+    this.setState({ selectedId: "outcome", outcomeSimulated: true, hoveredId: null });
+  };
+
+  resetView = () => {
+    this.setState({ hoveredId: null, selectedId: "client", messages: [], step1Done: false, step2Done: false, step3Done: false, outcomeSimulated: false, nodePos: {} });
+  };
+
+  renderVals() {
+    const { hoveredId, selectedId } = this.state;
+    const activeId = hoveredId || selectedId;
+    const connected = activeId ? this.connectedSet(activeId) : null;
+    const isolating = Boolean(hoveredId);
+
+    const nodeById = {};
+    NODE_DEFS.forEach((n) => (nodeById[n.id] = n));
+    const posById = {};
+    NODE_DEFS.forEach((n) => { const o = this.state.nodePos[n.id]; posById[n.id] = o ? { x: o.x, y: o.y } : { x: n.x, y: n.y }; });
+
+    const nodes = NODE_DEFS.map((n) => {
+      const pos = posById[n.id];
+      const pal = PALETTE[n.dim ? "slateDim" : n.colorKey];
+      const inConn = !connected || connected.has(n.id);
+      const isSelected = n.id === selectedId;
+      const isHovered = n.id === hoveredId;
+      const opacity = isolating ? (inConn ? 1 : 0.22) : n.dim ? 0.55 : 1;
+      const boosted = isHovered || isSelected;
+      const shadow = boosted
+        ? `0 0 0 1px ${pal.border}, 0 0 18px ${pal.glow}`
+        : `0 1px 3px rgba(0,0,0,0.5)`;
+      let badge = n.badge;
+      if (n.badgeKey === "simBadge") badge = this.state.outcomeSimulated ? "simulated" : "projected";
+      if (n.badgeKey === "evidenceBadge") badge = (this.state.outcomeSimulated ? "32" : "31") + " cases";
+      return {
+        id: n.id,
+        x: pos.x,
+        y: pos.y,
+        icon: n.icon,
+        label: n.label,
+        typeLabel: n.typeLabel,
+        sub: n.sub || null,
+        badge: badge || null,
+        badgeBg: "rgba(255,255,255,0.03)",
+        synthetic: Boolean(n.synthetic),
+        bg: pal.surface,
+        border: "rgba(255,255,255,0.07)",
+        accentBorder: pal.border,
+        accent: pal.accent,
+        textColor: pal.text,
+        opacity,
+        shadow,
+        transform: boosted ? "translateY(-2px)" : "translateY(0)",
+        onEnter: () => this.setState({ hoveredId: n.id }),
+        onLeave: () => this.setState({ hoveredId: null }),
+        onClick: () => this.setState({ selectedId: n.id }),
+        onDragStart: this.startNodeDrag(n.id, pos.x, pos.y),
+      };
+    });
+
+    const edges = EDGE_DEFS.map((e) => {
+      const s = posById[e.s], t = posById[e.t];
+      const sx = s.x + CARD_W, sy = s.y + CARD_H_MID;
+      const tx = t.x, ty = t.y + CARD_H_MID;
+      const color = EDGE_COLOR[e.ck];
+      const relevant = !connected || (connected.has(e.s) && connected.has(e.t));
+      const opacity = isolating ? (relevant ? 1 : 0.08) : e.s === "mem_active" && e.t === "mem_superseded" ? 0.9 : 0.85;
+      const boosted = isolating && relevant;
+      const midx = (sx + tx) / 2, midy = (sy + ty) / 2;
+      const lw = Math.max(60, e.label.length * 6.4 + 14);
+      return {
+        id: e.id,
+        d: edgePath(sx, sy, tx, ty),
+        color,
+        width: boosted ? 2.6 : 1.8,
+        dash: e.dashed ? "5 4" : "0",
+        markerId: "arrow-" + e.ck,
+        glow: boosted ? `drop-shadow(0 0 6px ${color}99)` : "none",
+        animStyle: e.animated ? "animation: edgeflow 0.6s linear infinite; stroke-dasharray: 6 6;" : "",
+        opacity,
+        label: e.label,
+        lx: midx - lw / 2,
+        ly: midy - 9,
+        lw,
+        tx: midx,
+        ty: midy + 3.5,
+      };
+    });
+
+    const markerColors = Object.keys(EDGE_COLOR).map((k) => ({ id: "arrow-" + k, color: EDGE_COLOR[k] }));
+
+    const selNode = nodeById[selectedId] || null;
+    const selPal = selNode ? PALETTE[selNode.dim ? "slateDim" : selNode.colorKey] : null;
+    const insp = selNode ? INSPECTOR_DATA[selNode.id] : null;
+    const inspectorRows = insp ? insp.rows.map(([label, value]) => ({ label, value })) : [];
+    const noteColors = {
+      amber: { bg: "rgba(255,180,67,0.08)", border: "#5c4420", color: "#ffd28f" },
+      slate: { bg: "rgba(61,84,120,0.08)", border: "#233448", color: "#8fa5c8" },
+      purple: { bg: "rgba(185,139,255,0.08)", border: "#3a2a58", color: "#d7bfff" },
+    };
+    const nc = insp && insp.noteKey ? noteColors[insp.noteKey] : null;
+
+    return {
+      messages: this.state.messages,
+      showEmptyHint: this.state.messages.length === 0,
+      step1Done: this.state.step1Done,
+      step3Done: this.state.step3Done,
+      step2Disabled: !this.state.step1Done || this.state.step2Done,
+      step3Disabled: !this.state.step2Done || this.state.step3Done,
+      step1Color: this.state.step1Done ? "#5c7292" : "#8be9ff",
+      step2Color: this.state.step2Done ? "#5c7292" : this.state.step1Done ? "#8dffce" : "#3a4a5e",
+      step3Color: this.state.step3Done ? "#5c7292" : this.state.step2Done ? "#d7bfff" : "#3a4a5e",
+      step1Op: 1,
+      step2Op: this.state.step1Done ? 1 : 0.4,
+      step3Op: this.state.step2Done ? 1 : 0.4,
+      showSimulateBtn: this.state.step3Done && !this.state.outcomeSimulated,
+      step1: this.step1, step2: this.step2, step3: this.step3, step4: this.step4,
+      resetView: this.resetView,
+      worldW: 1720 + CARD_W + 40,
+      worldH: 335 + 120 + 40,
+      scaledW: (1720 + CARD_W + 40) * this.state.zoom,
+      scaledH: (335 + 120 + 40) * this.state.zoom,
+      zoom: this.state.zoom,
+      scrollRef: this.scrollRef,
+      legendOpen: this.state.legendOpen,
+      legendToggleLabel: this.state.legendOpen ? "Hide legend" : "Show legend",
+      toggleLegend: this.toggleLegend,
+      zoomIn: this.zoomIn,
+      zoomOut: this.zoomOut,
+      fitView: this.fitView,
+      cleanUp: this.cleanUp,
+      chatW: this.state.chatW,
+      inspectorW: this.state.inspectorW,
+      startResizeChat: this.startResizeChat,
+      startResizeInspector: this.startResizeInspector,
+      nodes,
+      edges,
+      markerColors,
+      hasSelection: Boolean(selNode),
+      selIcon: selNode ? selNode.icon : "",
+      selAccent: selPal ? selPal.accent : "#8fa5c8",
+      selLabel: selNode ? selNode.label : "",
+      selType: selNode ? selNode.typeLabel : "",
+      inspectorRows,
+      selNote: insp && insp.note ? insp.note : null,
+      selNoteBg: nc ? nc.bg : "transparent",
+      selNoteBorder: nc ? nc.border : "transparent",
+      selNoteColor: nc ? nc.color : "transparent",
+      activity: ACTIVITY_SEED,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
