@@ -1,4 +1,4 @@
-# AP Intelligence Graph
+# AP Intelligence
 
 **The living memory of AP's partnership decisions, relationships, and outcomes.**
 

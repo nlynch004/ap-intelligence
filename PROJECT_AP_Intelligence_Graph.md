@@ -1,4 +1,4 @@
-# AP Intelligence Graph
+# AP Intelligence
 ## Case Study Project Specification — Director of Applied AI Product
 
 ### One-line product thesis
@@ -35,7 +35,7 @@ The case-study prototype should demonstrate how that institutional memory is cre
 
 ## 2. Working product name
 
-# AP Intelligence Graph
+# AP Intelligence
 
 **Subtitle:** The living memory of AP's partnership decisions, relationships, and outcomes.
 
@@ -46,7 +46,7 @@ Alternative names if desired later:
 - AP Memory
 - AP Decision Memory
 
-For the prototype, use **AP Intelligence Graph** consistently.
+For the prototype, use **AP Intelligence** consistently.
 
 ---
 

@@ -222,7 +222,7 @@ def main():
     decisions = build_decisions()
     data = {
         "_synthetic": True,
-        "_note": "All entities in this file are fictional and generated for the AP Intelligence Graph prototype. No real client, creator, or publisher data is represented.",
+        "_note": "All entities in this file are fictional and generated for the AP Intelligence prototype. No real client, creator, or publisher data is represented.",
         "clients": CLIENTS,
         "creators": CREATORS,
         "team_members": TEAM_MEMBERS,

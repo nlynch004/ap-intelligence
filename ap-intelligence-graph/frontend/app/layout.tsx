@@ -17,7 +17,7 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AP Intelligence Graph",
+  title: "AP Intelligence",
   description: "The living memory of AP's partnership decisions, relationships, and outcomes.",
 };
 

@@ -1,7 +1,7 @@
 [project]
 name = "ap-intelligence-graph-backend"
 version = "0.1.0"
-description = "AP Intelligence Graph - governed memory backend"
+description = "AP Intelligence - governed memory backend"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",

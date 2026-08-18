@@ -6,7 +6,7 @@ from app.db import SessionLocal
 from app.routers import activity, chat, decisions, demo, graph, memory, recommendations
 from app.seed import seed
 
-app = FastAPI(title="AP Intelligence Graph API", version="0.1.0")
+app = FastAPI(title="AP Intelligence API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,

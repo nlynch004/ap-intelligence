@@ -1,8 +1,8 @@
-# Handoff: AP Intelligence Graph — Visual Enhancement
+# Handoff: AP Intelligence — Visual Enhancement
 
 ## Overview
 
-This package documents a visual redesign of the **AP Intelligence Graph** prototype
+This package documents a visual redesign of the **AP Intelligence** prototype
 (`ap-intelligence-graph/frontend`, Next.js + React Flow + Tailwind). The work is a
 **presentation-layer change only**: no backend, memory lifecycle, retrieval, conflict
 resolution, recommendation, decision, outcome, reset, or seed behavior changes.
@@ -48,7 +48,7 @@ There is one screen: the single-page workspace (`app/page.tsx`), three regions p
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ ● AP Intelligence Graph │ Creator renewal / Summit Sisters   Northwind ◧◨ Reset │
+│ ● AP Intelligence │ Creator renewal / Summit Sisters   Northwind ◧◨ Reset │
 ├───────────────┬──────────────────────────────────────────┬───────────────┤
 │ Workflow +    │            GRAPH WORKSPACE (hero)        │  Context      │
 │ Conversation  │                                          │  + Activity   │
@@ -77,7 +77,7 @@ There is one screen: the single-page workspace (`app/page.tsx`), three regions p
 - `padding: 0 24px`, bg `#0b0f16`, bottom border `1px solid #151b26`, flex space-between.
 - Left cluster, `gap: 12px`, vertically centered:
   - status square: `8×8px`, `border-radius: 2px`, `#4fb98d`.
-  - product name: `15px / 600 / #e6ecf5` — "AP Intelligence Graph".
+  - product name: `15px / 600 / #e6ecf5` — "AP Intelligence".
   - divider: `1px × 16px`, `#1c2431`.
   - context: `14px / #94a3ba` — "Creator renewal `/` Summit Sisters"; the slash is `#4b586e`.
 - Right cluster, `gap: 16px`:
