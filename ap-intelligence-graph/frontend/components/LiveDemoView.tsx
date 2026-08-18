@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { ACCENT, SURFACE, TEXT } from "@/lib/design";
+import { withDerivedEdges, withoutRelationshipClaims } from "@/lib/graphAugment";
 import type { ActivityEvent, GraphNodeData, GraphResponse } from "@/lib/types";
 import { ChatPanel } from "@/components/ChatPanel";
 import { IntelligenceGraph } from "@/components/IntelligenceGraph";
 import { MemoryInspector } from "@/components/MemoryInspector";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ResetDemoButton } from "@/components/ResetDemoButton";
+import { ResizeDivider } from "@/components/ResizeDivider";
 
 const CLIENT_ID = "northwind";
 
@@ -21,10 +23,15 @@ const INSPECTOR_MIN = 220;
 const INSPECTOR_MAX = 520;
 const INSPECTOR_DEFAULT_CAP = 330;
 const INSPECTOR_DEFAULT_FRAC = 0.23;
+// Bounds for the draggable divider between the inspector's Context block and
+// its Activity feed below it (mirrors ChatPanel's steps/conversation divider).
+const INSPECTOR_TOP_DEFAULT_H = 340;
+const INSPECTOR_TOP_MIN_H = 160;
+const INSPECTOR_TOP_MAX_H = 700;
 
 async function loadDashboardData(clientId: string): Promise<{ graph: GraphResponse; activity: ActivityEvent[] }> {
   const [graph, activity] = await Promise.all([api.getGraph(clientId), api.getActivity(clientId)]);
-  return { graph, activity };
+  return { graph: withDerivedEdges(withoutRelationshipClaims(graph)), activity };
 }
 
 /** Header breadcrumb, e.g. "Creator renewal / Summit Sisters" - derived from
@@ -62,7 +69,9 @@ export function LiveDemoView() {
   const [inspectorW, setInspectorW] = useState(INSPECTOR_DEFAULT_CAP);
   const [chatVisible, setChatVisible] = useState(true);
   const [inspectorVisible, setInspectorVisible] = useState(true);
+  const [inspectorTopH, setInspectorTopH] = useState(INSPECTOR_TOP_DEFAULT_H);
   const dragRef = useRef<{ mode: "chat" | "inspector"; startX: number; startVal: number } | null>(null);
+  const rowDragRef = useRef<{ startY: number; startVal: number } | null>(null);
 
   function backendUnreachableMessage(err: unknown): string {
     return (
@@ -166,6 +175,32 @@ export function LiveDemoView() {
     dragRef.current = { mode: "inspector", startX: e.clientX, startVal: inspectorW };
   }
 
+  // Horizontal divider drag between the inspector's Context block and its
+  // Activity feed below it - separate ref/effect from the column-width drag
+  // above since it tracks clientY against a height, not clientX against a
+  // width.
+  useEffect(() => {
+    function onMove(e: MouseEvent) {
+      const d = rowDragRef.current;
+      if (!d) return;
+      setInspectorTopH(Math.max(INSPECTOR_TOP_MIN_H, Math.min(INSPECTOR_TOP_MAX_H, d.startVal + (e.clientY - d.startY))));
+    }
+    function onUp() {
+      rowDragRef.current = null;
+    }
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, []);
+
+  function startInspectorRowResize(e: React.MouseEvent) {
+    e.preventDefault();
+    rowDragRef.current = { startY: e.clientY, startVal: inspectorTopH };
+  }
+
   // Default the inspector to the client node (Northwind) rather than an
   // empty panel on first load or right after a demo reset - computed at
   // render time (no effect/extra state needed) so it's correct immediately,
@@ -225,7 +260,7 @@ export function LiveDemoView() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
           <span style={{ width: 8, height: 8, borderRadius: 2, background: ACCENT.green, flex: "none" }} />
-          <span style={{ fontSize: 15, fontWeight: 600, color: TEXT.primary, whiteSpace: "nowrap" }}>AP Intelligence Graph</span>
+          <span style={{ fontSize: 15, fontWeight: 600, color: TEXT.primary, whiteSpace: "nowrap" }}>AP Intelligence</span>
           <span style={{ width: 1, height: 16, background: "#1c2431", flex: "none" }} />
           <span style={{ fontSize: 14, color: TEXT.secondary, whiteSpace: "nowrap" }}>{headerContext(graph)}</span>
         </div>
@@ -257,7 +292,7 @@ export function LiveDemoView() {
             <section style={{ width: chatW, flex: "0 1 auto", minWidth: 240, display: "flex", flexDirection: "column", background: SURFACE.panel, minHeight: 0 }}>
               <ChatPanel key={demoEpoch} clientId={CLIENT_ID} graph={graph} onAfterMutation={refresh} onHighlight={handleHighlight} />
             </section>
-            <div onMouseDown={startChatResize} style={{ width: 1, flex: "none", cursor: "col-resize", background: SURFACE.separator }} />
+            <ResizeDivider direction="col" onMouseDown={startChatResize} />
           </>
         )}
 
@@ -271,9 +306,12 @@ export function LiveDemoView() {
 
         {inspectorVisible && (
           <>
-            <div onMouseDown={startInspectorResize} style={{ width: 1, flex: "none", cursor: "col-resize", background: SURFACE.separator }} />
+            <ResizeDivider direction="col" onMouseDown={startInspectorResize} />
             <section style={{ width: inspectorW, flex: "0 1 auto", minWidth: 220, display: "flex", flexDirection: "column", background: SURFACE.panel, minHeight: 0 }}>
-              <MemoryInspector node={displayedNode} graph={graph} />
+              <div style={{ flex: "none", height: inspectorTopH, minHeight: 0, overflow: "hidden" }}>
+                <MemoryInspector node={displayedNode} graph={graph} />
+              </div>
+              <ResizeDivider direction="row" onMouseDown={startInspectorRowResize} />
               <ActivityFeed events={activity} />
             </section>
           </>

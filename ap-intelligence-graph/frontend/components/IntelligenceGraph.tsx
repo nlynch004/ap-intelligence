@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ACCENT, FAMILIES, SURFACE, TEXT } from "@/lib/design";
 import { describeNode, edgeStyle } from "@/lib/nodeVisuals";
-import type { GraphNodeData, GraphNodeType, GraphResponse } from "@/lib/types";
+import type { GraphNodeData, GraphResponse } from "@/lib/types";
 import { ApGraphNode, NODE_ANCHOR_Y, NODE_WIDTH } from "./ApGraphNode";
 
 // Custom canvas (design_handoff v2 Sec.4): absolutely-positioned cards over
@@ -13,17 +13,58 @@ import { ApGraphNode, NODE_ANCHOR_Y, NODE_WIDTH } from "./ApGraphNode";
 // edge-rendering opinions.
 
 // Conceptual layout stages - one per narrative beat, pitch ~330px per the
-// handoff. creator/publisher and outcome/portfolio_pattern share a stage
-// since they represent the same beat in the node inventory table.
-const STAGES: GraphNodeType[][] = [
-  ["team_member"],
-  ["client"],
-  ["creator", "publisher"],
-  ["campaign"],
-  ["memory_claim"],
-  ["decision"],
-  ["outcome", "portfolio_pattern"],
-];
+// handoff. Most node types map to a fixed stage; memory_claim is special-
+// cased by predicate (see stageIndexFor). Account-level "macro" claims (the
+// client's overall strategy/goals) and the portfolio pattern that supports
+// the client sit immediately to the LEFT of the client - the broader context
+// framing the client, rather than something downstream of it - while
+// campaign-derived granular claims (attribution hypotheses) sit to the
+// right of campaign, downstream of the numbers they were derived from.
+// Partner sits directly next to campaign (no stage between them) so a
+// creator/publisher and the campaign it ran are visually adjacent.
+const STAGE_TEAM_MEMBER = 0;
+const STAGE_LEFT_CONTEXT = 1; // portfolio pattern, strategy/goals/tradeoff/negotiation history
+const STAGE_CLIENT = 2;
+const STAGE_PARTNER = 3; // creator, publisher
+const STAGE_CAMPAIGN = 4;
+const STAGE_CAMPAIGN_CLAIM = 5; // attribution/measurement hypotheses
+const STAGE_DECISION = 6;
+const STAGE_OUTCOME = 7;
+const STAGE_COUNT = 8;
+
+// Predicates characterizing the account itself, as opposed to a specific
+// campaign's numbers (backend/app/memory/predicates.py). relationship_status
+// is deliberately excluded - those claims are filtered out of the graph
+// entirely before layout ever runs (see lib/graphAugment.ts), redundant
+// with the direct client/partner "has relationship" edge.
+const ACCOUNT_LEVEL_PREDICATES = new Set(["partnership_strategy", "primary_growth_objective", "accepts_tradeoff", "negotiation_history"]);
+
+function stageIndexFor(node: GraphNodeData): number {
+  switch (node.node_type) {
+    case "team_member":
+      return STAGE_TEAM_MEMBER;
+    case "client":
+      return STAGE_CLIENT;
+    case "creator":
+    case "publisher":
+      return STAGE_PARTNER;
+    case "campaign":
+      return STAGE_CAMPAIGN;
+    case "decision":
+      return STAGE_DECISION;
+    case "outcome":
+      return STAGE_OUTCOME;
+    case "portfolio_pattern":
+      return STAGE_LEFT_CONTEXT;
+    case "memory_claim": {
+      const predicate = node.data?.predicate as string | undefined;
+      return predicate && ACCOUNT_LEVEL_PREDICATES.has(predicate) ? STAGE_LEFT_CONTEXT : STAGE_CAMPAIGN_CLAIM;
+    }
+    default:
+      return STAGE_COUNT;
+  }
+}
+
 const COL_PITCH = 330;
 const ROW_PITCH = 185;
 const SPINE_Y = 175;
@@ -34,38 +75,43 @@ type Pos = { x: number; y: number };
 
 function computeLayout(graph: GraphResponse): Record<string, Pos> {
   const pos: Record<string, Pos> = {};
-  const placed = new Set<string>();
-  STAGES.forEach((types, stageIdx) => {
-    const inStage = graph.nodes
-      .filter((n) => types.includes(n.node_type))
-      .sort((a, b) => {
-        const ta = types.indexOf(a.node_type);
-        const tb = types.indexOf(b.node_type);
-        return ta !== tb ? ta - tb : a.id.localeCompare(b.id);
-      });
-    const n = inStage.length;
-    inStage.forEach((node, i) => {
+  const byStage = new Map<number, GraphNodeData[]>();
+  graph.nodes.forEach((node) => {
+    const stage = stageIndexFor(node);
+    const list = byStage.get(stage);
+    if (list) list.push(node);
+    else byStage.set(stage, [node]);
+  });
+  byStage.forEach((nodes, stageIdx) => {
+    const sorted = [...nodes].sort((a, b) => a.id.localeCompare(b.id));
+    const n = sorted.length;
+    sorted.forEach((node, i) => {
       pos[node.id] = { x: stageIdx * COL_PITCH, y: SPINE_Y + (i - (n - 1) / 2) * ROW_PITCH };
-      placed.add(node.id);
     });
   });
-  // Defensive: any node type not covered by STAGES (shouldn't happen - the
-  // union above is exhaustive over GraphNodeType) lands in one extra column.
-  graph.nodes
-    .filter((n) => !placed.has(n.id))
-    .forEach((node, i) => {
-      pos[node.id] = { x: STAGES.length * COL_PITCH, y: SPINE_Y + i * ROW_PITCH };
-    });
   return pos;
 }
 
+// Direction-aware: pulls each control point *away from its own card, toward
+// the other* - i.e. inward along the sx->tx line - rather than always
+// bulging rightward. For the common left-to-right case (sx < tx) this is
+// identical to the original fixed formula; for an edge whose target sits to
+// the *left* of its source (e.g. client -> a strategy claim now laid out
+// left of the client), the curve mirrors instead of looping the long way
+// around, back behind the source card, to reach a left-side anchor.
 function bezierPath(sx: number, sy: number, tx: number, ty: number): string {
-  const dx = Math.max(70, (tx - sx) * 0.5);
-  return `M ${sx},${sy} C ${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`;
+  const dir = tx >= sx ? 1 : -1;
+  const spread = Math.max(70, Math.abs(tx - sx) * 0.5);
+  const c1x = sx + dir * spread;
+  const c2x = tx - dir * spread;
+  return `M ${sx},${sy} C ${c1x},${sy} ${c2x},${ty} ${tx},${ty}`;
 }
 
 const LEGEND_ITEMS: { color: string; label: string }[] = [
   { color: ACCENT.blue, label: "Client context & memory" },
+  { color: ACCENT.teal, label: "Creator" },
+  { color: ACCENT.rose, label: "Publisher" },
+  { color: ACCENT.sage, label: "Campaign" },
   { color: ACCENT.amber, label: "Uncertainty & review" },
   { color: ACCENT.green, label: "Decision & outcome" },
   { color: ACCENT.purple, label: "Portfolio intelligence" },
@@ -228,9 +274,17 @@ export function IntelligenceGraph({ graph, highlightedIds = [], selectedId, onSe
                 if (!source || !target) return null;
                 const sp = posFor(edge.source);
                 const tp = posFor(edge.target);
-                const sx = sp.x + NODE_WIDTH;
+                // Anchor each end on the side actually facing the other card
+                // (source's right/target's left when the target is laid out
+                // to the right, mirrored when it's laid out to the left -
+                // e.g. an account-level claim now sitting left of the client
+                // that has a HAS_STRATEGY/HAS_GOAL/etc. edge *from* it) -
+                // never a fixed side regardless of layout, which is what
+                // sent a line behind the card instead of beside it.
+                const targetIsRight = tp.x >= sp.x;
+                const sx = targetIsRight ? sp.x + NODE_WIDTH : sp.x;
                 const sy = sp.y + NODE_ANCHOR_Y + yShift;
-                const tx = tp.x;
+                const tx = targetIsRight ? tp.x : tp.x + NODE_WIDTH;
                 const ty = tp.y + NODE_ANCHOR_Y + yShift;
                 const targetFamily = describeNode(target, graph).family;
                 const desc = edgeStyle(edge, targetFamily);

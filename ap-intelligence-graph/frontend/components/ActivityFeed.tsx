@@ -32,7 +32,7 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
   const ordered = [...events].reverse();
 
   return (
-    <div className="ap-scroll" style={{ flex: 1, overflowY: "auto", padding: 22, borderTop: `1px solid ${SURFACE.separatorInner}`, minHeight: 0 }}>
+    <div className="ap-scroll" style={{ flex: 1, overflowY: "auto", padding: 22, minHeight: 0 }}>
       <div style={{ fontSize: 11, letterSpacing: "0.09em", color: TEXT.faint, marginBottom: 18 }}>ACTIVITY</div>
       {ordered.length === 0 && <div style={{ fontSize: 13, color: TEXT.secondary2, fontStyle: "italic" }}>No activity yet.</div>}
       <div style={{ display: "flex", flexDirection: "column" }}>

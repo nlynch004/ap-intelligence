@@ -14,6 +14,7 @@ import type {
 import { CandidateMemoryReview } from "./CandidateMemoryReview";
 import { ConflictDialog } from "./ConflictDialog";
 import { RecommendationCard } from "./RecommendationCard";
+import { ResizeDivider } from "./ResizeDivider";
 
 type Msg =
   | { id: string; role: "user"; text: string }
@@ -37,6 +38,12 @@ const STEP_DEFS = [
   },
   { title: "Renewal decision", desc: "Evaluate Summit Sisters", prompt: "Summit Sisters wants $6,000 for another campaign. Should we renew them?" },
 ];
+
+// Bounds for the draggable divider between the "Demo steps" block and
+// "Chat conversation" below it.
+const STEPS_DEFAULT_H = 240;
+const STEPS_MIN_H = 130;
+const STEPS_MAX_H = 460;
 
 let uid = 0;
 const nextId = () => `m${++uid}_${Date.now()}`;
@@ -63,6 +70,34 @@ export function ChatPanel({
   const [decisions, setDecisions] = useState<Record<string, Decision>>({});
   const [outcomes, setOutcomes] = useState<Record<string, SimulateOutcomeResponse>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Draggable horizontal divider between the "Demo steps" block and "Chat
+  // conversation" below it - same mousedown/window-mousemove/mouseup
+  // pattern as the vertical panel dividers in LiveDemoView.tsx.
+  const [stepsH, setStepsH] = useState(STEPS_DEFAULT_H);
+  const stepsDragRef = useRef<{ startY: number; startVal: number } | null>(null);
+
+  useEffect(() => {
+    function onMove(e: MouseEvent) {
+      const d = stepsDragRef.current;
+      if (!d) return;
+      setStepsH(Math.max(STEPS_MIN_H, Math.min(STEPS_MAX_H, d.startVal + (e.clientY - d.startY))));
+    }
+    function onUp() {
+      stepsDragRef.current = null;
+    }
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, []);
+
+  function startStepsResize(e: React.MouseEvent) {
+    e.preventDefault();
+    stepsDragRef.current = { startY: e.clientY, startVal: stepsH };
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -202,9 +237,9 @@ export function ChatPanel({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ padding: "22px 22px 16px" }}>
-        <div style={{ fontSize: 11, letterSpacing: "0.09em", color: TEXT.faint, marginBottom: 14 }}>CREATOR RENEWAL</div>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+      <div className="ap-scroll" style={{ flex: "none", height: stepsH, overflowY: "auto", padding: "22px 22px 16px" }}>
+        <div style={{ fontSize: 11, letterSpacing: "0.09em", color: TEXT.faint, marginBottom: 14 }}>DEMO STEPS</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {STEP_DEFS.map((step, i) => {
             const done = stage > i;
@@ -242,8 +277,10 @@ export function ChatPanel({
         </div>
       </div>
 
-      <div style={{ padding: "6px 22px 10px", borderTop: `1px solid ${SURFACE.separatorInner}` }}>
-        <div style={{ fontSize: 11, letterSpacing: "0.09em", color: TEXT.faint, paddingTop: 14 }}>CONVERSATION</div>
+      <ResizeDivider direction="row" onMouseDown={startStepsResize} />
+
+      <div style={{ flex: "none", padding: "14px 22px 6px" }}>
+        <div style={{ fontSize: 11, letterSpacing: "0.09em", color: TEXT.faint }}>CHAT CONVERSATION</div>
       </div>
 
       <div ref={scrollRef} className="ap-scroll" style={{ flex: 1, overflowY: "auto", padding: "6px 22px 22px", display: "flex", flexDirection: "column", gap: 14, minHeight: 0 }}>

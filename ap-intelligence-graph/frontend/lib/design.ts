@@ -1,5 +1,5 @@
 // Design tokens for the dark, enterprise-grade theme (design_handoff_intelligence_graph
-// v2 - "AP Intelligence Graph — Visual Enhancement"). Presentation-layer only.
+// v2 - "AP Intelligence — Visual Enhancement"). Presentation-layer only.
 //
 // Colors are exact hex values from a high-fidelity spec, not part of Tailwind's
 // palette, so they're kept here as plain JS and applied via inline `style`
@@ -7,7 +7,7 @@
 // survive Tailwind's static scan anyway). Layout/spacing utilities still use
 // Tailwind classes throughout the components.
 
-export type Family = "blue" | "green" | "amber" | "purple" | "gray" | "hist";
+export type Family = "blue" | "green" | "amber" | "purple" | "gray" | "hist" | "teal" | "rose" | "sage";
 
 export interface FamilyTokens {
   /** edge stroke / arrowhead color */
@@ -29,6 +29,15 @@ export const FAMILIES: Record<Family, FamilyTokens> = {
   purple: { line: "#6d61a4", node: "#14131f", border: "#272338", text: "#a599dd", glow: "rgba(143,131,201,0.2)" },
   gray: { line: "#333d4e", node: "#0c1017", border: "#181e29", text: "#8896ac", glow: "rgba(120,140,170,0.12)" },
   hist: { line: "#3a4557", node: "#0a0e14", border: "#151b25", text: "#5d6b81", glow: "rgba(120,140,170,0.08)" },
+  // Structural-entity variants (spec follow-up: creator/publisher/campaign
+  // previously all shared `gray`, making distinct node types visually
+  // indistinguishable at rest, not just once focused). Each stays in the
+  // same muted, low-saturation "structural" weight class as `gray` rather
+  // than competing with the meaningful semantic colors above - just a
+  // different whisper of hue per type.
+  teal: { line: "#3f8f8a", node: "#0d1917", border: "#1b2f2b", text: "#7ecec6", glow: "rgba(79,185,175,0.2)" },
+  rose: { line: "#a35a78", node: "#1a1015", border: "#301f28", text: "#d99bb5", glow: "rgba(190,110,150,0.2)" },
+  sage: { line: "#7d8659", node: "#14160f", border: "#262a1c", text: "#b6c194", glow: "rgba(175,190,130,0.18)" },
 };
 
 // Accent hues for header/legend/status chrome (not tied to a graph node).
@@ -38,6 +47,9 @@ export const ACCENT = {
   amber: "#c9975a",
   purple: "#8f83c9",
   historical: "#3d4859",
+  teal: "#5fc2ba",
+  rose: "#c97fa0",
+  sage: "#a3b177",
 };
 
 export const SURFACE = {

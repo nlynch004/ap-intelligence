@@ -81,7 +81,7 @@ function describePartner(node: GraphNodeData): NodeDescription {
     : [asString(d.network), asString(d.publisher_type)];
   const detail = parts.filter(Boolean).join(" · ") || platform || null;
   return {
-    family: "gray",
+    family: isCreator ? "teal" : "rose",
     typeLabel: isCreator ? "Creator" : "Publisher",
     title: node.label,
     detail: detail || null,
@@ -98,7 +98,7 @@ function describeCampaign(node: GraphNodeData): NodeDescription {
   const roas = fee && revenue != null ? revenue / fee : null;
   const parts = [fee != null ? `$${fee.toLocaleString()} fee` : null, roas != null ? `${roas.toFixed(2)}x ROAS` : null];
   return {
-    family: "gray",
+    family: "sage",
     typeLabel: "Campaign",
     title: node.label,
     detail: parts.filter(Boolean).join(" · ") || null,
@@ -248,7 +248,10 @@ interface EdgeSpec {
 const EDGE_TABLE: Record<string, EdgeSpec> = {
   MANAGES: { label: "manages", family: "gray" },
   WORKED_WITH: { label: "worked with", family: "gray" },
-  HAS_RELATIONSHIP: { label: "has relationship", family: "gray" },
+  // Color follows the target - a relationship_status memory claim (blue) or
+  // a creator/publisher (teal/rose) - so the edge visually previews what
+  // it's about, same as MOTIVATED_BY below.
+  HAS_RELATIONSHIP: { label: "has relationship", familyFromTarget: true },
   HAS_CAMPAIGN: { label: "has campaign", family: "gray" },
   APPLIES_TO: { label: "applies to", family: "gray" },
   HAS_STRATEGY: { label: "current strategy", family: "blue" },

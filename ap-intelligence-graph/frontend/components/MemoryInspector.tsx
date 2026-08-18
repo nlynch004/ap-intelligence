@@ -283,21 +283,28 @@ function TeamMemberSections({ node, graph }: { node: GraphNodeData; graph: Graph
 export function MemoryInspector({ node, graph = null }: { node: GraphNodeData | null; graph?: GraphResponse | null }) {
   if (!node) {
     return (
-      <div style={{ flex: 1.15, minHeight: 0, padding: 22 }}>
+      <div style={{ height: "100%", minHeight: 0, padding: 22 }}>
         <div style={{ fontSize: 13, color: TEXT.secondary2, fontStyle: "italic" }}>Click a node in the graph to inspect its memory metadata, source, and status.</div>
       </div>
     );
   }
 
   const desc = describeNode(node, graph);
-  const statusColor = FAMILIES[desc.family].text;
+  // Same family color the graph node itself uses for its type label/focus
+  // ring, carried into the inspector so a node and its Context pane read as
+  // the same object at a glance (spec follow-up: node-type color now maps
+  // 1:1 into this pane, not just the graph canvas).
+  const familyColor = FAMILIES[desc.family].text;
 
   return (
-    <div className="ap-scroll" style={{ flex: 1.15, overflowY: "auto", padding: 22, minHeight: 0 }}>
+    <div className="ap-scroll" style={{ height: "100%", overflowY: "auto", padding: 22, minHeight: 0 }}>
       <div style={{ fontSize: 11, letterSpacing: "0.09em", color: TEXT.faint, marginBottom: 16 }}>CONTEXT</div>
       <div style={{ fontSize: 19, fontWeight: 600, color: TEXT.primary, lineHeight: 1.3, whiteSpace: "pre-line" }}>{node.label}</div>
-      <div style={{ fontSize: 13, color: TEXT.metadata, marginTop: 3 }}>{desc.typeLabel}</div>
-      {desc.statusText && <div style={{ fontSize: 13, color: statusColor, marginTop: 12 }}>{desc.statusText}</div>}
+      <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 3 }}>
+        <span style={{ width: 6, height: 6, borderRadius: 2, background: familyColor, flex: "none" }} />
+        <span style={{ fontSize: 13, color: familyColor }}>{desc.typeLabel}</span>
+      </div>
+      {desc.statusText && <div style={{ fontSize: 13, color: familyColor, marginTop: 12 }}>{desc.statusText}</div>}
 
       {node.node_type === "client" && <ClientSections node={node} graph={graph} />}
       {node.node_type === "memory_claim" && <MemoryClaimSections node={node} graph={graph} />}
