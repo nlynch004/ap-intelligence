@@ -36,12 +36,19 @@ class OpenAIProvider(LLMProvider):
         return json.loads(resp.choices[0].message.content)
 
     def extract_claims(
-        self, message: str, client_id: str, client_name: str, known_predicates: list[str] | None = None
+        self,
+        message: str,
+        client_id: str,
+        client_name: str,
+        known_predicates: list[str] | None = None,
+        known_partners: list[dict[str, str]] | None = None,
     ) -> list[dict[str, Any]]:
         known = ", ".join(known_predicates) if known_predicates else "(none yet)"
+        partners = ", ".join(f"{p['id']}: {p['name']} ({p['kind']})" for p in known_partners) if known_partners else "(none yet)"
         user_prompt = (
             f"client_id: {client_id}\nclient_name: {client_name}\n"
             f"KNOWN PREDICATES for this client (reuse exactly when applicable): {known}\n"
+            f"KNOWN PARTNERS for this client (reuse the id exactly when the message names one of them): {partners}\n"
             f"message: {message}"
         )
         data = self._chat_json(EXTRACTION_SYSTEM_PROMPT, user_prompt)

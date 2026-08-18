@@ -17,8 +17,20 @@ class MockProvider(LLMProvider):
     name = "mock_deterministic"
 
     def extract_claims(
-        self, message: str, client_id: str, client_name: str, known_predicates: list[str] | None = None
+        self,
+        message: str,
+        client_id: str,
+        client_name: str,
+        known_predicates: list[str] | None = None,
+        known_partners: list[dict[str, str]] | None = None,
     ) -> list[dict[str, Any]]:
+        # known_partners unused: this deterministic fallback only ever
+        # extracts the three canned client-level claims from the demo
+        # script's Step 2 message (see module docstring) - it never produces
+        # a creator/publisher-subject claim, so there's nothing to resolve
+        # a partner id for. Accepted here only to keep the same call
+        # signature as the live provider (factory.call_with_fallback calls
+        # whichever provider is active with identical args).
         text = message.lower()
         candidates: list[dict[str, Any]] = []
 

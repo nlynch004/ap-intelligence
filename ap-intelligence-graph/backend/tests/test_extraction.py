@@ -44,7 +44,7 @@ def db():
 def _patch_extractor(monkeypatch, claims: list[dict], provider_name: str = "test_stub"):
     monkeypatch.setattr(
         manager, "extract_candidate_claims",
-        lambda message, client_id, client_name, known_predicates=None: (claims, provider_name),
+        lambda message, client_id, client_name, known_predicates=None, known_partners=None: (claims, provider_name),
     )
 
 

@@ -15,7 +15,12 @@ class LLMProvider(ABC):
 
     @abstractmethod
     def extract_claims(
-        self, message: str, client_id: str, client_name: str, known_predicates: list[str] | None = None
+        self,
+        message: str,
+        client_id: str,
+        client_name: str,
+        known_predicates: list[str] | None = None,
+        known_partners: list[dict[str, str]] | None = None,
     ) -> list[dict[str, Any]]:
         """Return candidate claim dicts shaped like CandidateClaimPayload.
         Should return an empty list for messages that contain no durable,
@@ -25,6 +30,11 @@ class LLMProvider(ABC):
         client's claims - implementations should be steered to reuse an exact
         match when applicable, since conflict detection downstream is a
         deterministic exact-string match, not semantic (spec Sec.11).
+
+        `known_partners` lists {id, name, kind} for this client's existing
+        creators/publishers - implementations should be steered to reuse an
+        existing partner's exact id as subject_id when the message names
+        them, rather than inventing a new slug for the same entity.
         """
 
     @abstractmethod

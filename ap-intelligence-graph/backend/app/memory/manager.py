@@ -16,7 +16,7 @@ from app.memory.conflict_resolver import decide_operation, find_active_conflict
 from app.memory.extraction_schema import ExtractedClaimIn
 from app.memory.operations import execute_create, execute_reject, execute_supersede, execute_update, log_activity
 from app.memory.predicates import normalize_predicate
-from app.models import Client, MemoryCandidate, MemoryClaim, RawEvent
+from app.models import Campaign, Client, MemoryCandidate, MemoryClaim, Partner, RawEvent
 
 
 def propose_candidates_from_message(db: Session, *, client_id: str, message: str) -> tuple[list[MemoryCandidate], str]:
@@ -34,7 +34,23 @@ def propose_candidates_from_message(db: Session, *, client_id: str, message: str
         c.predicate for c in
         db.query(MemoryClaim).filter(MemoryClaim.client_id == client_id, MemoryClaim.status == "active").all()
     })
-    raw_claims, provider_name = extract_candidate_claims(message, client_id, client_name, known_predicates)
+    # Partners this client has actually run campaigns with (same join chat.py
+    # uses to resolve a partner mention) - given to the extraction agent so
+    # a relationship_status/negotiation_history claim about a named partner
+    # resolves to that partner's real id instead of subject_type defaulting
+    # to "client" or a fabricated slug (spec follow-up: subject_type
+    # resolution accuracy).
+    known_partners = [
+        {"id": p.id, "name": p.name, "kind": p.kind}
+        for p in (
+            db.query(Partner)
+            .join(Campaign, Campaign.partner_id == Partner.id)
+            .filter(Campaign.client_id == client_id)
+            .distinct()
+            .all()
+        )
+    ]
+    raw_claims, provider_name = extract_candidate_claims(message, client_id, client_name, known_predicates, known_partners)
 
     candidates: list[MemoryCandidate] = []
     for raw in raw_claims:
