@@ -4,6 +4,21 @@ import { ACCENT, SURFACE, TEXT, sentenceCase } from "@/lib/design";
 import type { Decision, RecommendationResponse, SimulateOutcomeResponse } from "@/lib/types";
 import { DecisionEvidencePanel } from "./DecisionEvidencePanel";
 
+// Simulated-outcome metrics (backend/app/routers/decisions.py::simulate_outcome)
+// mix dollar amounts, a percentage, and plain status strings in one dict -
+// format each accordingly instead of dumping the raw value.
+const MONEY_METRIC_KEYS = new Set(["attributed_revenue", "verified_new_customer_revenue", "base_fee"]);
+const PERCENT_METRIC_KEYS = new Set(["performance_bonus_pct"]);
+
+function formatMetric(key: string, val: unknown): string {
+  if (typeof val === "number") {
+    if (MONEY_METRIC_KEYS.has(key)) return `$${val.toLocaleString()}`;
+    if (PERCENT_METRIC_KEYS.has(key)) return `${val}%`;
+    return val.toLocaleString();
+  }
+  return String(val).replace(/_/g, " ");
+}
+
 const primaryButton: React.CSSProperties = {
   marginTop: 14,
   fontSize: 13,
@@ -76,7 +91,7 @@ export function RecommendationCard({
               {Object.entries(outcomeResp.outcome.metrics).map(([k, val]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: TEXT.secondary }}>
                   <span>{k.replace(/_/g, " ")}</span>
-                  <span style={{ color: TEXT.strongSecondary2, fontWeight: 500 }}>{String(val)}</span>
+                  <span style={{ color: TEXT.strongSecondary2, fontWeight: 500 }}>{formatMetric(k, val)}</span>
                 </div>
               ))}
             </div>
