@@ -289,25 +289,9 @@ export const DISCUSSION_SECTIONS: DiscussionSection[] = [
     disclaimer: "Target-state direction, not a claim that any of this is already implemented.",
   },
   {
-    kind: "bullets-simple",
-    id: "postgres-vs-graph",
-    num: "05",
-    navLabel: "Postgres vs Graph DB",
-    title: "Why PostgreSQL Before Neptune?",
-    bullets: [
-      "A graph UI does not automatically require a graph database.",
-      { text: "The canonical workload is still highly relational:", sub: ["claims", "statuses", "scopes", "validity windows", "sources", "decisions", "outcomes"] },
-      "PostgreSQL provides mature transactions and governance.",
-      "Graph relationships can remain explicit relational edge records initially.",
-      "pgvector can add semantic retrieval without introducing a second canonical store.",
-      "Neptune becomes valuable if complex multi-hop graph traversal becomes a dominant production workload.",
-    ],
-    keyLine: "The graph is a product representation; it does not have to dictate the storage engine.",
-  },
-  {
     kind: "ranked-risks",
     id: "scale",
-    num: "06",
+    num: "05",
     navLabel: "200+ Clients",
     title: "What Breaks First at 200+ Clients?",
     risks: [
@@ -351,7 +335,7 @@ export const DISCUSSION_SECTIONS: DiscussionSection[] = [
   {
     kind: "phases",
     id: "rollout",
-    num: "07",
+    num: "06",
     navLabel: "Rollout",
     title: "How I Would Roll It Out",
     opening: "Launch one trusted workflow, not an enterprise knowledge platform.",
@@ -388,7 +372,7 @@ export const DISCUSSION_SECTIONS: DiscussionSection[] = [
   {
     kind: "adoption",
     id: "adoption",
-    num: "08",
+    num: "07",
     navLabel: "Adoption",
     title: "Driving Adoption",
     opening: "Account managers should not need to understand agents, embeddings, or knowledge graphs.",
@@ -416,7 +400,7 @@ export const DISCUSSION_SECTIONS: DiscussionSection[] = [
   {
     kind: "measurement",
     id: "measurement",
-    num: "09",
+    num: "08",
     navLabel: "Measurement",
     title: "How I Would Measure Success",
     opening: "Usage is diagnostic. Business outcomes define success.",
