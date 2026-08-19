@@ -51,15 +51,20 @@ Open **http://localhost:3000**. It talks to the backend at `http://localhost:800
 
 Type each of these into the chat panel, in order:
 
-1. **`Bring me up to speed on Northwind.`** — retrieves active memory only. At this point the old
-   `aggressively grow coupon partnerships` strategy is still active.
+1. **`Bring me up to speed on Northwind's partnership with Summit Sisters.`** — retrieves active
+   memory only. At this point the old `aggressively grow coupon partnerships` strategy is still
+   active. (The query itself is a broad, unscoped pull of every active claim for this client, not
+   partner-filtered - it's just that Summit Sisters is still the only partner with governed
+   relationship memory at a fresh reset, so naming her keeps the prompt honest about what the
+   answer will cover.)
 2. **`Northwind's strategy changed after last week's executive review. They now want to reduce
    coupon dependence and prioritize new-customer growth, even if short-term ROAS is a little
    lower.`** — the extraction agent proposes 3 candidate memories. Approve them (individually or
    "Approve all"). The strategy candidate conflicts with the old belief - a conflict dialog opens.
    Choose **Supersede**. The old strategy node goes dim/dashed in the graph but stays visible.
-3. **`Bring me up to speed on Northwind.`** again — the old strategy no longer appears; the new one
-   does. This is the "changes its mind without forgetting its history" moment.
+3. **`Bring me up to speed on Northwind's partnership with Summit Sisters.`** again — the old
+   strategy no longer appears; the new one does. This is the "changes its mind without forgetting
+   its history" moment.
 4. **`Summit Sisters wants $6,000 for another campaign. Should we renew them?`** — a structured
    recommendation appears (renegotiate & test, $3,500 base + 10% performance bonus), citing the
    attribution hypothesis as an explicit uncertainty and the synthetic portfolio pattern as

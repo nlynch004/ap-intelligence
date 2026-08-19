@@ -49,7 +49,21 @@ type Msg =
 // separately (spec "State Management": workflow state must remain a
 // projection of real application state).
 const STEP_DEFS = [
-  { title: "Account context", desc: "Retrieve current Northwind context", prompt: "Bring me up to speed on Northwind." },
+  {
+    title: "Account context",
+    desc: "Retrieve current Northwind context",
+    // Deliberately partner-scoped in wording, not just "...on Northwind." -
+    // the underlying query (active_client_memories) is still a broad,
+    // unscoped pull of every active claim tied to this client, but since
+    // Phase 1 added 4 more creators with no governed relationship memory of
+    // their own (only campaign/evidence rows for the newer Campaign
+    // Review/Partner Brief/Scenario Comparison workflows to use), Summit
+    // Sisters remains the only partner-level belief that exists at a fresh
+    // reset. Naming her here keeps the prompt honest about what the answer
+    // will actually cover, rather than reading like a full-portfolio ask it
+    // can't yet back up.
+    prompt: "Bring me up to speed on Northwind's partnership with Summit Sisters.",
+  },
   {
     title: "Strategy update",
     desc: "Capture what changed",
