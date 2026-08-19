@@ -131,6 +131,75 @@ export interface MeasurementSection {
   keyLine: string;
 }
 
+export interface FlowLayer {
+  heading: string;
+  /** Sub-caption under the heading, e.g. "strategy · definitions · policies …" - only the top three input layers of the Sec.09 architecture visual use this. */
+  detail?: string;
+  /** Connector rendered BELOW this layer - "+" for the input layers that combine, "down" for the sequential flow, omitted on the last layer. */
+  joiner?: "+" | "down";
+}
+
+export interface CapabilityCard {
+  title: string;
+  copy: string;
+  /** Optional secondary clarifying line, e.g. the privacy-safe-portfolio caveat or the human-approval caveat - rendered smaller/muted, distinct from the main copy. */
+  note?: string;
+  footerLabel: string;
+  footerValue: string;
+}
+
+export interface GuardrailItem {
+  title: string;
+  copy: string;
+}
+
+export interface ChainColumn {
+  heading: string;
+  steps: string[];
+  note: string;
+}
+
+export interface FutureStateSection {
+  kind: "future-state";
+  id: string;
+  num: string;
+  navLabel: string;
+  title: string;
+  introParagraphs: string[];
+  architecture: {
+    badge: string;
+    layers: FlowLayer[];
+  };
+  cards: CapabilityCard[];
+  northStar: {
+    heading: string;
+    prompt: string;
+    steps: string[];
+    whyAgentic: string;
+  };
+  comparison: {
+    current: ChainColumn;
+    future: ChainColumn;
+  };
+  provenPrimitives: {
+    heading: string;
+    items: string[];
+    closing: string;
+  };
+  guardrails: {
+    heading: string;
+    items: GuardrailItem[];
+  };
+  enterpriseStack: {
+    badge: string;
+    layers: FlowLayer[];
+  };
+  closingThesis: {
+    quote: string;
+    supporting: string;
+  };
+}
+
 export type DiscussionSection =
   | ResponsibilitiesSection
   | RagCompareSection
@@ -140,7 +209,8 @@ export type DiscussionSection =
   | RankedRisksSection
   | PhasesSection
   | AdoptionSection
-  | MeasurementSection;
+  | MeasurementSection
+  | FutureStateSection;
 
 export const DISCUSSION_GUIDE_HEADER = {
   eyebrow: "POST-DEMO DISCUSSION",
@@ -451,6 +521,174 @@ export const DISCUSSION_SECTIONS: DiscussionSection[] = [
       ],
     },
     keyLine: "I would not define success as more chats. I would define it as better decisions with less organizational relearning.",
+  },
+  {
+    kind: "future-state",
+    id: "future-state",
+    num: "09",
+    navLabel: "Future-State Agentic System",
+    title: "Future State — From Intelligence Graph to an AP Agentic Operating System",
+    introParagraphs: [
+      "The prototype demonstrates an intelligence layer for one client workflow. A production future state could expand that architecture into a broader AP agentic operating system: shared organizational context that agents combine with live company data, reusable business procedures, governed actions, and outcome feedback.",
+      "The goal would not be one agent that “knows everything.” The goal would be specialized agents operating from the same governed AP context, choosing the right tools and skills for a business objective, taking bounded actions, and making what they learn reusable across the organization.",
+    ],
+    architecture: {
+      badge: "FUTURE STATE — CONCEPTUAL PRODUCTION DIRECTION, NOT IMPLEMENTED IN THIS PROTOTYPE",
+      layers: [
+        { heading: "AP Organizational Context", detail: "strategy · definitions · policies · client memory · prior decisions", joiner: "+" },
+        { heading: "Live AP Data / Tools", detail: "campaigns · partners · contracts · CRM · performance · conversations", joiner: "+" },
+        { heading: "Reusable AP Skills", detail: "campaign review · partner planning · renewal analysis · anomaly investigation", joiner: "down" },
+        { heading: "Agent Orchestration", joiner: "down" },
+        { heading: "Policy + Governance", joiner: "down" },
+        { heading: "Propose / Execute Action", joiner: "down" },
+        { heading: "Outcome + Feedback", joiner: "down" },
+        { heading: "Governed Memory Update" },
+      ],
+    },
+    cards: [
+      {
+        title: "Always-On Account Intelligence Agent",
+        copy: "Accepts a broad account objective and determines which AP context, analyses, and workflows are needed—rather than requiring the account manager to manually invoke each capability.",
+        note: "Examples: current strategy · recent campaign performance · partner history · open measurement issues · upcoming decisions · existing plans.",
+        footerLabel: "Agentic shift:",
+        footerValue: "Goal → multi-step orchestration",
+      },
+      {
+        title: "Portfolio Opportunity & Risk Agent",
+        copy: "Continuously evaluates permissioned signals across AP's portfolio to identify programs, partners, renewals, measurement issues, and growth opportunities that deserve account-team attention.",
+        note: "Cross-client intelligence would use permissioned, aggregated, or privacy-safe patterns rather than unrestricted raw client data.",
+        footerLabel: "Agentic shift:",
+        footerValue: "Detect → investigate → prioritize → route",
+      },
+      {
+        title: "Partner Intelligence & Negotiation Agent",
+        copy: "Combines partner history, campaign economics, current commercial terms, measurement confidence, client strategy, and appropriate portfolio benchmarks to prepare a negotiation position and identify information the account team still needs.",
+        footerLabel: "Agentic shift:",
+        footerValue: "Retrieve → compare → prepare negotiation",
+      },
+      {
+        title: "Planning-to-Execution Agent",
+        copy: "Converts approved PlannedActions into bounded operational workflows such as CRM updates, internal tasks, measurement requests, workflow triggers, or draft partner communications.",
+        note: "High-impact external actions retain explicit human approval.",
+        footerLabel: "Agentic shift:",
+        footerValue: "Plan → tools → governed execution",
+      },
+      {
+        title: "Fast-Context / Decision Capture Agent",
+        copy: "Reviews approved meeting, email, account-note, or collaboration sources for important strategy and decision changes, proposes memory updates, detects conflicts with existing beliefs, and routes them to human review.",
+        footerLabel: "Agentic shift:",
+        footerValue: "Conversation → candidate memory → governance",
+      },
+      {
+        title: "Portfolio Learning Agent",
+        copy: "Evaluates decisions and outcomes across comparable situations, identifies repeatable evidence patterns, and proposes privacy-safe portfolio learning that can improve future recommendations.",
+        note: "The model does not independently declare a best practice; evidence and promotion into shared intelligence remain governed.",
+        footerLabel: "Agentic shift:",
+        footerValue: "Outcome → pattern → future context",
+      },
+      {
+        title: "Reusable AP Skills",
+        copy: "Packages repeatable AP expertise—such as campaign review, renewal analysis, attribution investigation, partner planning, or QBR preparation—into reusable procedures with defined context, tools, outputs, and approval requirements.",
+        footerLabel: "Operating-model shift:",
+        footerValue: "Individual expertise → institutional capability",
+      },
+      {
+        title: "Agent / Skill Governance",
+        copy: "Every shared capability has an owner, version, approved data access, permitted actions, evaluation suite, review date, and retirement path.",
+        footerLabel: "Governance shift:",
+        footerValue: "Experiments → managed internal capabilities",
+      },
+    ],
+    northStar: {
+      heading: "What “Truly Agentic” Could Look Like",
+      prompt: "Find the creator partnerships across my accounts that need attention before Q4 and help me decide what to do.",
+      steps: [
+        "Resolve the account manager's permitted client portfolio",
+        "Load current client strategies and active plans",
+        "Query live campaign and partner performance",
+        "Identify renewals / commercial deadlines",
+        "Detect measurement or attribution concerns",
+        "Retrieve relevant partner and organizational memory",
+        "Retrieve privacy-safe AP portfolio patterns",
+        "Prioritize relationships requiring attention",
+        "Run the appropriate scenario-analysis skills",
+        "Propose account actions",
+        "Request human approval",
+        "Write approved actions into operational systems",
+        "Monitor subsequent outcomes",
+        "Propose new governed learning",
+      ],
+      whyAgentic:
+        "Why this is agentic: The user provides the business objective. The agent determines the workflow, selects the required context and tools, executes multiple reasoning steps, maintains state, requests approval where required, and observes the result.",
+    },
+    comparison: {
+      current: {
+        heading: "Current Prototype",
+        steps: ["User selects a workflow", "Application retrieves bounded evidence", "Specialized LLM call", "Validation", "Human approval", "Optional persistence"],
+        note: "The prototype deliberately uses bounded workflows to prove trust, memory governance, provenance, decision capture, and human control.",
+      },
+      future: {
+        heading: "Future Agentic System",
+        steps: [
+          "User provides a business objective",
+          "Agent decomposes the objective",
+          "Chooses skills + governed tools",
+          "Retrieves live evidence across AP systems",
+          "Executes multiple reasoning steps",
+          "Proposes / executes permitted actions",
+          "Monitors outcomes",
+          "Updates governed organizational intelligence",
+        ],
+        note: "The next architectural step is not simply adding more prompts. It is allowing an orchestrator to dynamically choose among governed context, skills, and tools while preserving the same trust boundaries demonstrated by the prototype.",
+      },
+    },
+    provenPrimitives: {
+      heading: "Primitives Already Demonstrated",
+      items: [
+        "Governed organizational memory",
+        "Provenance and source authority",
+        "Active vs historical context",
+        "Conflict detection and supersession",
+        "Deterministic evidence construction",
+        "Structured LLM outputs",
+        "Human approval boundaries",
+        "Plans vs Decisions vs Outcomes",
+        "Portfolio learning loop",
+        "Bounded read vs write workflows",
+        "Evidence-ID validation",
+        "Duplicate-action protection",
+      ],
+      closing: "These are foundational primitives for a larger agentic architecture even though the prototype intentionally stops short of enterprise tool orchestration and autonomous execution.",
+    },
+    guardrails: {
+      heading: "Guardrails I Would Preserve",
+      items: [
+        { title: "No unrestricted “super-agent”", copy: "Specialized skills and agents should operate through explicit tool and data contracts." },
+        { title: "No unrestricted cross-client context", copy: "Tenant isolation remains fundamental. Cross-client learning should use governed, privacy-safe portfolio patterns." },
+        { title: "No raw customer warehouse in the prompt", copy: "Agents query live systems through bounded tools and receive the minimum evidence required for the task." },
+        { title: "No silent organizational-memory writes", copy: "New beliefs and decisions continue through authority, conflict, and human-review controls." },
+        { title: "No automatic high-impact external actions", copy: "Commercial commitments, client-facing communications, contract changes, and similarly consequential actions retain approval gates." },
+        { title: "No LLM-owned business mathematics", copy: "Metrics, eligibility, policy checks, and state transitions remain deterministic wherever possible." },
+      ],
+    },
+    enterpriseStack: {
+      badge: "CONCEPTUAL PRODUCTION ARCHITECTURE — NOT IMPLEMENTED IN THIS PROTOTYPE",
+      layers: [
+        { heading: "Experience", detail: "Account teams / analysts / leadership" },
+        { heading: "Agent Orchestration", detail: "Goal decomposition · skill selection · workflow state" },
+        { heading: "Shared AP Intelligence", detail: "Client memory · strategy · definitions · prior decisions · portfolio patterns" },
+        { heading: "Skill Registry", detail: "Campaign review · renewal · planning · anomaly investigation · QBR preparation" },
+        { heading: "Governed Tool Layer", detail: "CRM · warehouse · affiliate platforms · creator platforms · contracts · communication systems" },
+        { heading: "Policy & Identity", detail: "Tenant isolation · RBAC · PII · approvals · action permissions" },
+        { heading: "Systems of Record", detail: "Operational and analytical AP data" },
+        { heading: "Observability", detail: "Tool calls · evidence · model outputs · approvals · actions · outcomes" },
+      ],
+    },
+    closingThesis: {
+      quote:
+        "The Intelligence Graph becomes most powerful not when one agent knows everything, but when many specialized agents can operate from the same governed AP context, use the right live data and tools, and make what they learn available to the next person or agent.",
+      supporting: "The prototype proves the trust and memory primitives. The future state adds dynamic orchestration, governed enterprise tools, reusable skills, and continuous learning across AP.",
+    },
   },
 ];
 

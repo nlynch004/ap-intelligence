@@ -50,8 +50,8 @@ type Msg =
 // projection of real application state).
 const STEP_DEFS = [
   {
-    title: "Account context",
-    desc: "Retrieve current Northwind context",
+    title: "Summit Sisters context",
+    desc: "Retrieve current Summit Sisters context",
     // Deliberately partner-scoped in wording, not just "...on Northwind." -
     // the underlying query (active_client_memories) is still a broad,
     // unscoped pull of every active claim tied to this client, but since

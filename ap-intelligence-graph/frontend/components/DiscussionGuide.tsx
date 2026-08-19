@@ -10,7 +10,12 @@ import {
   type ArchitectureChain,
   type ArchitectureSection,
   type BulletsSimpleSection,
+  type CapabilityCard,
+  type ChainColumn,
   type DiscussionSection,
+  type FlowLayer,
+  type FutureStateSection,
+  type GuardrailItem,
   type MeasurementSection,
   type PhasesSection,
   type RagCompareSection,
@@ -342,6 +347,201 @@ function MeasurementBlock({ s }: { s: MeasurementSection }) {
   );
 }
 
+// ---- Sec.09 "Future-State Agentic Capabilities" - additive rendering only,
+// reuses the existing visual language (SectionShell/KeyLine/BulletList/Chain/
+// the SURFACE.raised card treatment already used throughout this file) - no
+// new design system, no diagramming dependency. See lib/discussionGuide.ts
+// for the authored content this renders.
+
+function FutureStateBadge({ text }: { text: string }) {
+  return (
+    <div
+      style={{
+        display: "inline-block",
+        fontSize: 10.5,
+        fontWeight: 700,
+        letterSpacing: "0.07em",
+        textTransform: "uppercase",
+        color: ACCENT.purple,
+        background: "rgba(143,131,201,0.12)",
+        border: "1px solid rgba(143,131,201,0.28)",
+        borderRadius: 20,
+        padding: "5px 12px",
+        marginBottom: 14,
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
+/** Renders the Sec.09 architecture visual: three "+"-joined context/tools/
+ * skills inputs flowing down into a single orchestration→…→memory chain.
+ * Also reused (with `dense`) for the enterprise-stack callout, which has no
+ * connectors - just stacked, full-width layer cards. */
+function FlowDiagram({ layers, dense = false }: { layers: FlowLayer[]; dense?: boolean }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0, maxWidth: dense ? 640 : 460, margin: "0 auto" }}>
+      {layers.map((layer) => (
+        <div key={layer.heading} style={{ width: "100%" }}>
+          <div
+            style={{
+              background: SURFACE.raised,
+              border: `1px solid ${SURFACE.separator}`,
+              borderRadius: 8,
+              padding: dense ? "12px 16px" : "10px 14px",
+              textAlign: dense ? "left" : "center",
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 600, color: TEXT.strongSecondary2 }}>{layer.heading}</div>
+            {layer.detail && <div style={{ fontSize: 12, color: TEXT.faint, marginTop: 4, lineHeight: 1.5 }}>{layer.detail}</div>}
+          </div>
+          {layer.joiner && (
+            <div style={{ textAlign: "center", color: TEXT.faint2, fontSize: layer.joiner === "+" ? 15 : 14, padding: "4px 0", fontWeight: layer.joiner === "+" ? 700 : 400 }}>
+              {layer.joiner === "+" ? "+" : "↓"}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CapabilityCardTile({ card }: { card: CapabilityCard }) {
+  return (
+    <div style={{ background: SURFACE.raised, borderRadius: 10, padding: 18, display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ fontSize: 14.5, fontWeight: 600, color: TEXT.primary, lineHeight: 1.35 }}>{card.title}</div>
+      <div style={{ fontSize: 13, lineHeight: 1.55, color: TEXT.secondary2 }}>{card.copy}</div>
+      {card.note && <div style={{ fontSize: 12, lineHeight: 1.5, color: TEXT.faint, fontStyle: "italic" }}>{card.note}</div>}
+      <div style={{ marginTop: "auto", paddingTop: 8, borderTop: `1px solid ${SURFACE.separatorInner2}`, display: "flex", gap: 6, flexWrap: "wrap", fontSize: 12 }}>
+        <span style={{ color: ACCENT.blue, fontWeight: 600, flex: "none" }}>{card.footerLabel}</span>
+        <span style={{ color: TEXT.metadata }}>{card.footerValue}</span>
+      </div>
+    </div>
+  );
+}
+
+function CapabilityCardGrid({ cards }: { cards: CapabilityCard[] }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16, marginTop: 16 }}>
+      {cards.map((c) => (
+        <CapabilityCardTile key={c.title} card={c} />
+      ))}
+    </div>
+  );
+}
+
+function PromptQuote({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ background: SURFACE.raised, borderRadius: 12, padding: "20px 24px", textAlign: "center", margin: "16px 0" }}>
+      <div style={{ fontSize: 16, fontStyle: "italic", color: TEXT.strongSecondary2, lineHeight: 1.6 }}>“{children}”</div>
+    </div>
+  );
+}
+
+function ChainColumnBlock({ col }: { col: ChainColumn }) {
+  return (
+    <div>
+      <SectionEyebrow text={col.heading} />
+      <Chain steps={col.steps} />
+      <div style={{ fontSize: 13, lineHeight: 1.55, color: TEXT.secondary2, marginTop: 14 }}>{col.note}</div>
+    </div>
+  );
+}
+
+function GuardrailTile({ item }: { item: GuardrailItem }) {
+  return (
+    <div style={{ background: SURFACE.raised, borderRadius: 10, padding: "14px 16px" }}>
+      <div style={{ fontSize: 13.5, fontWeight: 600, color: TEXT.primary, marginBottom: 6 }}>{item.title}</div>
+      <div style={{ fontSize: 13, lineHeight: 1.5, color: TEXT.secondary2 }}>{item.copy}</div>
+    </div>
+  );
+}
+
+function ProminentQuote({ quote, supporting }: { quote: string; supporting: string }) {
+  return (
+    <div style={{ marginTop: 22, background: SURFACE.raised, borderRadius: 14, padding: "28px 32px", textAlign: "center" }}>
+      <div style={{ fontSize: 17, fontWeight: 600, fontStyle: "italic", color: TEXT.primary, lineHeight: 1.55, maxWidth: 680, margin: "0 auto 16px" }}>“{quote}”</div>
+      <div style={{ fontSize: 13.5, color: TEXT.secondary2, lineHeight: 1.55, maxWidth: 620, margin: "0 auto" }}>{supporting}</div>
+    </div>
+  );
+}
+
+function FutureStateBlock({ s }: { s: FutureStateSection }) {
+  return (
+    <SectionShell id={s.id} num={s.num} title={s.title}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 760 }}>
+        {s.introParagraphs.map((p, i) => (
+          <p key={i} style={{ fontSize: 14, fontWeight: 500, color: TEXT.secondary2, margin: 0, lineHeight: 1.6 }}>
+            {p}
+          </p>
+        ))}
+      </div>
+
+      {/* --- architecture visual --- */}
+      <div style={{ marginTop: 28 }}>
+        <FutureStateBadge text={s.architecture.badge} />
+        <FlowDiagram layers={s.architecture.layers} />
+      </div>
+
+      {/* --- capability cards --- */}
+      <div style={{ marginTop: 30 }}>
+        <SectionEyebrow text="Future-State Capabilities" />
+        <CapabilityCardGrid cards={s.cards} />
+      </div>
+
+      {/* --- north-star workflow --- */}
+      <div style={{ marginTop: 34 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: TEXT.primary, margin: "0 0 12px" }}>{s.northStar.heading}</h3>
+        <PromptQuote>{s.northStar.prompt}</PromptQuote>
+        <NumberedBehaviors items={s.northStar.steps} />
+        <KeyLine>{s.northStar.whyAgentic}</KeyLine>
+      </div>
+
+      {/* --- current vs future comparison --- */}
+      <div style={{ marginTop: 34 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 28 }}>
+          <ChainColumnBlock col={s.comparison.current} />
+          <ChainColumnBlock col={s.comparison.future} />
+        </div>
+      </div>
+
+      {/* --- primitives already proven --- */}
+      <div style={{ marginTop: 34 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: TEXT.primary, margin: "0 0 12px" }}>{s.provenPrimitives.heading}</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "8px 20px" }}>
+          {s.provenPrimitives.items.map((item) => (
+            <div key={item} style={{ display: "flex", gap: 8, fontSize: 13.5, color: TEXT.strongSecondary2 }}>
+              <span style={{ color: ACCENT.green, flex: "none" }}>✓</span>
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
+        <KeyLine>{s.provenPrimitives.closing}</KeyLine>
+      </div>
+
+      {/* --- guardrails --- */}
+      <div style={{ marginTop: 34 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: TEXT.primary, margin: "0 0 12px" }}>{s.guardrails.heading}</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
+          {s.guardrails.items.map((item) => (
+            <GuardrailTile key={item.title} item={item} />
+          ))}
+        </div>
+      </div>
+
+      {/* --- enterprise stack callout --- */}
+      <div style={{ marginTop: 34 }}>
+        <FutureStateBadge text={s.enterpriseStack.badge} />
+        <FlowDiagram layers={s.enterpriseStack.layers} dense />
+      </div>
+
+      {/* --- closing thesis --- */}
+      <ProminentQuote quote={s.closingThesis.quote} supporting={s.closingThesis.supporting} />
+    </SectionShell>
+  );
+}
+
 function renderSection(s: DiscussionSection) {
   switch (s.kind) {
     case "responsibilities":
@@ -362,6 +562,8 @@ function renderSection(s: DiscussionSection) {
       return <AdoptionBlock key={s.id} s={s} />;
     case "measurement":
       return <MeasurementBlock key={s.id} s={s} />;
+    case "future-state":
+      return <FutureStateBlock key={s.id} s={s} />;
   }
 }
 
