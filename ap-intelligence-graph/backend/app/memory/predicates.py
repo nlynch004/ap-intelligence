@@ -36,6 +36,24 @@ CANONICAL_PREDICATES: dict[str, PredicateSpec] = {
     "relationship_status": PredicateSpec(("creator", "publisher"), "current status of AP's relationship with a partner"),
     "negotiation_history": PredicateSpec(("creator", "publisher"), "history of negotiations with a partner"),
     "attribution_integrity_risk": PredicateSpec(("campaign",), "a suspected attribution/measurement risk on a campaign"),
+    # Phase 2 (Campaign Review) addition - the single new predicate that
+    # phase required. Justification: campaign-review lessons that
+    # characterize a partner's demonstrated commercial/content performance
+    # (e.g. "consistently strong direct-response economics", "weak
+    # direct-response economics despite content strength") don't fit any
+    # existing predicate - relationship_status describes relationship stage,
+    # not performance, and negotiation_history describes negotiation
+    # events, not outcomes. attribution_integrity_risk was deliberately
+    # reused as-is for campaign-level measurement concerns rather than
+    # duplicated. Anything that doesn't fit even this (e.g. audience-fit
+    # characterizations like "indexes toward first-time buyers") is left
+    # unknown on purpose and routed to REQUEST_HUMAN_REVIEW - not every
+    # useful observation needs a new canonical bucket.
+    "partner_performance_pattern": PredicateSpec(
+        ("creator", "publisher"),
+        "a partner's demonstrated commercial/content performance pattern, characterized from campaign-review "
+        "evidence - historical observation, not a causal claim or a guarantee of future results",
+    ),
 }
 
 # Deterministic, explicit alias table. Every key is a plausible synonym the
@@ -61,6 +79,10 @@ PREDICATE_ALIASES: dict[str, str] = {
     "relationship": "relationship_status",
     "attribution_risk": "attribution_integrity_risk",
     "promo_code_leakage_risk": "attribution_integrity_risk",
+    "performance_pattern": "partner_performance_pattern",
+    "performance_characterization": "partner_performance_pattern",
+    "commerce_performance_pattern": "partner_performance_pattern",
+    "commercial_performance_pattern": "partner_performance_pattern",
 }
 
 

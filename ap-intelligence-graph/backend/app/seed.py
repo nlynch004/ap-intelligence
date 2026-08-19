@@ -119,18 +119,19 @@ def seed(db: Session, reset: bool = False) -> None:
         db.add(TeamMember(id=tm["id"], name=tm["name"], role=tm["role"], primary_client_id=tm.get("manages_client_id"), synthetic=False))
 
     for c in nw["creators"]:
-        db.add(Partner(id=c["id"], name=c["name"], kind="creator", platform=c.get("platform"), meta=c, synthetic=False))
+        db.add(Partner(id=c["id"], name=c["name"], kind="creator", platform=c.get("platform"), meta=c, synthetic=c.get("synthetic", False)))
     for p in nw.get("publishers", []):
-        db.add(Partner(id=p["id"], name=p["name"], kind="publisher", platform=p.get("network"), meta=p, synthetic=False))
+        db.add(Partner(id=p["id"], name=p["name"], kind="publisher", platform=p.get("network"), meta=p, synthetic=p.get("synthetic", False)))
 
     for camp in nw["campaigns"]:
         db.add(Campaign(
             id=camp["id"], client_id=nw["client"]["id"], partner_id=camp["creator_id"], month=camp["month"],
             flat_fee=camp.get("flat_fee"), impressions=camp.get("impressions"), engagements=camp.get("engagements"),
             link_clicks=camp.get("link_clicks"), code_redemptions=camp.get("code_redemptions"),
-            attributed_revenue=camp.get("attributed_revenue"), meta={k: v for k, v in camp.items() if k not in {
+            attributed_revenue=camp.get("attributed_revenue"), synthetic=camp.get("synthetic", False),
+            meta={k: v for k, v in camp.items() if k not in {
                 "id", "creator_id", "month", "flat_fee", "impressions", "engagements", "link_clicks",
-                "code_redemptions", "attributed_revenue",
+                "code_redemptions", "attributed_revenue", "synthetic",
             }},
         ))
 
@@ -148,6 +149,13 @@ def seed(db: Session, reset: bool = False) -> None:
     client_id = nw["client"]["id"]
     db.add(MemoryEdge(from_type="team_member", from_id="jessica_moreno", to_type="client", to_id=client_id, relationship="MANAGES"))
     db.add(MemoryEdge(from_type="team_member", from_id="jessica_moreno", to_type="partner", to_id="summit_sisters", relationship="WORKED_WITH"))
+    # New Phase-1 synthetic archetypes: each gets its own WORKED_WITH edge
+    # from the Northwind account lead, mirroring the existing Summit Sisters
+    # convention (deliberately not a generalized loop over all creators, so
+    # Trail With Tessa - which has never had this edge - stays unchanged).
+    db.add(MemoryEdge(from_type="team_member", from_id="jessica_moreno", to_type="partner", to_id="peak_pursuit", relationship="WORKED_WITH"))
+    db.add(MemoryEdge(from_type="team_member", from_id="jessica_moreno", to_type="partner", to_id="campfire_kate", relationship="WORKED_WITH"))
+    db.add(MemoryEdge(from_type="team_member", from_id="jessica_moreno", to_type="partner", to_id="backcountry_ben", relationship="WORKED_WITH"))
     db.add(MemoryEdge(from_type="client", from_id=client_id, to_type="memory_claim", to_id="mem_northwind_strategy_coupon", relationship="HAS_STRATEGY", client_id=client_id))
     db.add(MemoryEdge(from_type="client", from_id=client_id, to_type="memory_claim", to_id="mem_summit_relationship", relationship="HAS_RELATIONSHIP", client_id=client_id))
     for camp in nw["campaigns"]:

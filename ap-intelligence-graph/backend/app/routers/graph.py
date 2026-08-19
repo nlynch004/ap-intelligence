@@ -48,6 +48,7 @@ def _resolve_node(db: Session, node_type: str, raw_id: str) -> schemas.GraphNode
                 "flat_fee": obj.flat_fee, "link_clicks": obj.link_clicks,
                 "code_redemptions": obj.code_redemptions, "attributed_revenue": obj.attributed_revenue,
                 "partner_id": obj.partner_id, "partner_name": partner_name, "month": obj.month,
+                "synthetic": obj.synthetic,
             },
         )
 
@@ -95,6 +96,37 @@ def _resolve_node(db: Session, node_type: str, raw_id: str) -> schemas.GraphNode
                 "positive_outcomes": obj.positive_outcomes, "flat_fee_success_rate": obj.flat_fee_success_rate,
                 "hybrid_success_rate": obj.hybrid_success_rate, "strongest_conditions": obj.strongest_conditions,
                 "synthetic": obj.synthetic,
+            },
+        )
+
+    if node_type == "plan":
+        obj = db.get(models.Plan, raw_id)
+        if not obj:
+            return None
+        action_count = db.query(models.PlannedAction).filter(models.PlannedAction.plan_id == raw_id).count()
+        return schemas.GraphNode(
+            id=node_key(node_type, raw_id), node_type="plan", label=obj.name, status=obj.status,
+            data={
+                "planning_period": obj.planning_period, "objective": obj.objective, "action_count": action_count,
+                "synthetic": obj.synthetic, "created_at": obj.created_at.isoformat(),
+            },
+        )
+
+    if node_type == "planned_action":
+        obj = db.get(models.PlannedAction, raw_id)
+        if not obj:
+            return None
+        partner = db.get(models.Partner, obj.partner_id) if obj.partner_id else None
+        owner = db.get(models.TeamMember, obj.owner_id) if obj.owner_id else None
+        return schemas.GraphNode(
+            id=node_key(node_type, raw_id), node_type="planned_action", label=obj.summary, status=obj.status,
+            data={
+                "action_type": obj.action_type, "rationale": obj.rationale, "plan_id": obj.plan_id,
+                "partner_id": obj.partner_id, "partner_name": partner.name if partner else None,
+                "owner_id": obj.owner_id, "owner_name": owner.name if owner else None, "due_date": obj.due_date,
+                "supporting_memory_ids": obj.supporting_memory_ids, "supporting_campaign_ids": obj.supporting_campaign_ids,
+                "source_scenario_id": obj.source_scenario_id, "source_decision_id": obj.source_decision_id,
+                "synthetic": obj.synthetic, "created_at": obj.created_at.isoformat(),
             },
         )
 

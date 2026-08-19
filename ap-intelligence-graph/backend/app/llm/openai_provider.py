@@ -11,9 +11,18 @@ from typing import Any
 
 from openai import OpenAI
 
-from app.agents.prompts import EXTRACTION_SYSTEM_PROMPT, RECOMMENDATION_SYSTEM_PROMPT
+from app.agents.prompts import (
+    CAMPAIGN_REVIEW_SYSTEM_PROMPT,
+    EXTRACTION_SYSTEM_PROMPT,
+    HISTORICAL_SUMMARY_SYSTEM_PROMPT,
+    PARTNER_BRIEF_SYSTEM_PROMPT,
+    PLAN_PROPOSAL_SYSTEM_PROMPT,
+    RECOMMENDATION_SYSTEM_PROMPT,
+    SCENARIO_COMPARISON_SYSTEM_PROMPT,
+)
 from app.config import settings
 from app.llm.provider import LLMProvider
+from app.memory.predicates import CANONICAL_PREDICATES
 
 
 class OpenAIProvider(LLMProvider):
@@ -60,6 +69,26 @@ class OpenAIProvider(LLMProvider):
             f"Context: {json.dumps(context)}"
         )
         return self._chat_json(RECOMMENDATION_SYSTEM_PROMPT, user_prompt)
+
+    def review_campaign(self, evidence: dict[str, Any]) -> dict[str, Any]:
+        known_predicates = ", ".join(sorted(CANONICAL_PREDICATES))
+        user_prompt = (
+            f"KNOWN CANDIDATE PREDICATES (reuse exactly when applicable): {known_predicates}\n\n"
+            f"Evidence:\n{json.dumps(evidence)}"
+        )
+        return self._chat_json(CAMPAIGN_REVIEW_SYSTEM_PROMPT, user_prompt)
+
+    def generate_partner_brief(self, evidence: dict[str, Any]) -> dict[str, Any]:
+        return self._chat_json(PARTNER_BRIEF_SYSTEM_PROMPT, f"Evidence:\n{json.dumps(evidence)}")
+
+    def summarize_history(self, evidence: dict[str, Any]) -> dict[str, Any]:
+        return self._chat_json(HISTORICAL_SUMMARY_SYSTEM_PROMPT, f"Timeline:\n{json.dumps(evidence)}")
+
+    def compare_scenarios(self, evidence: dict[str, Any]) -> dict[str, Any]:
+        return self._chat_json(SCENARIO_COMPARISON_SYSTEM_PROMPT, f"Evidence:\n{json.dumps(evidence)}")
+
+    def propose_plan(self, context: dict[str, Any]) -> dict[str, Any]:
+        return self._chat_json(PLAN_PROPOSAL_SYSTEM_PROMPT, f"PlanningContext:\n{json.dumps(context)}")
 
     def summarize(self, client_name: str, active_claims: list[dict[str, Any]]) -> str:
         claims_text = "\n".join(f"- {c['predicate']}: {c['value']}" for c in active_claims) or "(none)"

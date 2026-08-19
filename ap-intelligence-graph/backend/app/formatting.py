@@ -15,6 +15,9 @@ MONTH_NAMES = {
 }
 
 _DOLLAR_RE = re.compile(r"\$\s?([\d,]+(?:\.\d+)?)\s*(k\b)?", re.IGNORECASE)
+_MONTH_NAME_TO_NUM = {name.lower(): num for num, name in MONTH_NAMES.items()}
+_MONTH_MENTION_RE = re.compile(r"\b(" + "|".join(MONTH_NAMES.values()) + r")\s+(\d{4})\b", re.IGNORECASE)
+_PLANNING_PERIOD_RE = re.compile(r"\b([Qq][1-4]|[Hh][12])\b(?:\s+(\d{4}))?")
 
 
 def format_month(month: str) -> str:
@@ -22,6 +25,19 @@ def format_month(month: str) -> str:
     year, _, mon = month.partition("-")
     name = MONTH_NAMES.get(mon)
     return f"{name} {year}" if name else month
+
+
+def parse_month_mention(text: str) -> str | None:
+    """Reverse of format_month: finds the first 'May 2026'-style mention in
+    free text and returns '2026-05'. Deterministic - used to resolve which
+    campaign a chat message like "Review Summit Sisters' May 2026 campaign"
+    refers to, never left to the LLM to guess."""
+    match = _MONTH_MENTION_RE.search(text)
+    if not match:
+        return None
+    name, year = match.groups()
+    num = _MONTH_NAME_TO_NUM.get(name.lower())
+    return f"{year}-{num}" if num else None
 
 
 def extract_dollar_amount(text: str) -> float | None:
@@ -36,3 +52,18 @@ def extract_dollar_amount(text: str) -> float | None:
     if k:
         value *= 1000
     return value
+
+
+def extract_planning_period(text: str) -> str | None:
+    """Finds a 'Q4'/'H1'-style planning-period mention (optionally with a
+    year, e.g. 'Q4 2026') in free text. Deterministic - used to resolve
+    Plan.planning_period from a bounded chat request like "Build Northwind's
+    Q4 creator plan," never left to the LLM to invent (spec Phase 6 Sec.10:
+    "Build Northwind's next creator plan" is also valid with no period at
+    all - this returns None in that case rather than guessing one)."""
+    match = _PLANNING_PERIOD_RE.search(text)
+    if not match:
+        return None
+    period, year = match.groups()
+    period = period[0].upper() + period[1]
+    return f"{period} {year}" if year else period

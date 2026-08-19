@@ -115,6 +115,7 @@ export const PREDICATE_LABEL: Record<string, string> = {
   relationship_status: "Relationship",
   negotiation_history: "Negotiation history",
   attribution_integrity_risk: "Attribution hypothesis",
+  partner_performance_pattern: "Performance pattern",
 };
 
 export function predicateLabel(predicate: string): string {

@@ -98,6 +98,21 @@ class _BrokenProviderBase(LLMProvider):
     def summarize(self, *a, **k):
         raise NotImplementedError
 
+    def review_campaign(self, *a, **k):
+        raise NotImplementedError
+
+    def generate_partner_brief(self, *a, **k):
+        raise NotImplementedError
+
+    def summarize_history(self, *a, **k):
+        raise NotImplementedError
+
+    def compare_scenarios(self, *a, **k):
+        raise NotImplementedError
+
+    def propose_plan(self, *a, **k):
+        raise NotImplementedError
+
 
 class _MissingFieldProvider(_BrokenProviderBase):
     def recommend(self, question, evidence_brief, context):

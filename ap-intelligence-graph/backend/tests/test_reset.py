@@ -126,10 +126,16 @@ def test_reset_restores_exact_seeded_state(db):
     from app.models import Campaign, Client, MemoryEdge, Partner
 
     assert db.query(Client).count() == 6
-    assert db.query(Partner).count() == 15
-    assert db.query(Campaign).count() == 4
+    # Phase 1 added 3 synthetic Northwind creator archetypes (Peak Pursuit,
+    # Campfire Kate, Backcountry Ben) and their 7 campaigns.
+    assert db.query(Partner).count() == 18
+    assert db.query(Campaign).count() == 11
     assert db.query(MemoryClaim).count() == 18
-    assert db.query(MemoryEdge).filter(MemoryEdge.client_id == "northwind").count() == 15
+    # Every campaign contributes 3 client-scoped edges (HAS_CAMPAIGN,
+    # APPLIES_TO, HAS_RISK - the latter unconditional even when no
+    # attribution hypothesis claim actually exists for that campaign), plus
+    # HAS_STRATEGY, HAS_RELATIONSHIP, and SUPPORTS: 11 * 3 + 3 = 36.
+    assert db.query(MemoryEdge).filter(MemoryEdge.client_id == "northwind").count() == 36
 
 
 def test_reset_is_idempotent(db):

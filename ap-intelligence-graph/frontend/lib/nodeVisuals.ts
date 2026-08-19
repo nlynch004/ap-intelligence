@@ -103,7 +103,7 @@ function describeCampaign(node: GraphNodeData): NodeDescription {
     title: node.label,
     detail: parts.filter(Boolean).join(" · ") || null,
     statusText: null,
-    synthetic: false,
+    synthetic: Boolean(d.synthetic),
     historical: false,
   };
 }
@@ -192,6 +192,53 @@ function describePortfolioPattern(node: GraphNodeData): NodeDescription {
   };
 }
 
+const PLAN_STATUS_TEXT: Record<string, string> = {
+  draft: "○ Draft",
+  approved: "✓ Approved",
+  active: "● Active",
+  completed: "✓ Completed",
+  archived: "Archived",
+};
+
+function describePlan(node: GraphNodeData): NodeDescription {
+  const d = node.data ?? {};
+  const status = node.status ?? "";
+  const count = asNumber(d.action_count);
+  const parts = [d.planning_period ? String(d.planning_period) : null, count != null ? `${count} action${count === 1 ? "" : "s"}` : null];
+  return {
+    family: "purple",
+    typeLabel: "Plan",
+    title: node.label,
+    detail: parts.filter(Boolean).join(" · ") || null,
+    statusText: PLAN_STATUS_TEXT[status] ?? (status ? `● ${sentenceCase(status)}` : null),
+    synthetic: Boolean(d.synthetic),
+    historical: false,
+  };
+}
+
+const PLANNED_ACTION_STATUS_TEXT: Record<string, string> = {
+  approved: "✓ Approved",
+  in_progress: "● In progress",
+  completed: "✓ Completed",
+  cancelled: "✕ Cancelled",
+};
+
+function describePlannedAction(node: GraphNodeData): NodeDescription {
+  const d = node.data ?? {};
+  const status = node.status ?? "";
+  const actionType = asString(d.action_type);
+  const parts = [d.owner_name ? `Owner: ${d.owner_name}` : null, d.due_date ? `Due ${d.due_date}` : null];
+  return {
+    family: "purple",
+    typeLabel: actionType ? titleCase(actionType) : "Planned action",
+    title: node.label,
+    detail: parts.filter(Boolean).join(" · ") || null,
+    statusText: PLANNED_ACTION_STATUS_TEXT[status] ?? (status ? `● ${sentenceCase(status)}` : null),
+    synthetic: Boolean(d.synthetic),
+    historical: false,
+  };
+}
+
 export function describeNode(node: GraphNodeData, graph?: GraphResponse | null): NodeDescription {
   switch (node.node_type) {
     case "client":
@@ -211,6 +258,10 @@ export function describeNode(node: GraphNodeData, graph?: GraphResponse | null):
       return describeOutcome(node);
     case "portfolio_pattern":
       return describePortfolioPattern(node);
+    case "plan":
+      return describePlan(node);
+    case "planned_action":
+      return describePlannedAction(node);
     default:
       return {
         family: "gray",
@@ -263,6 +314,8 @@ const EDGE_TABLE: Record<string, EdgeSpec> = {
   MADE_DECISION: { label: "made decision", family: "green" },
   RESULTED_IN: { label: "resulted in", family: "green", always: true, animated: true },
   SUPPORTS: { label: "supports", family: "purple" },
+  HAS_PLAN: { label: "has plan", family: "purple" },
+  CONTAINS_ACTION: { label: "contains action", family: "purple" },
 };
 
 export function edgeStyle(edge: GraphEdgeData, targetFamily: Family): EdgeDescription {

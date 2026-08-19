@@ -24,10 +24,17 @@ def create_decision(req: schemas.DecisionCreateRequest, db: Session = Depends(ge
     if not client or not partner:
         raise HTTPException(404, "client or partner not found")
 
+    # Optional (spec Phase 6 Sec.26) - validated rather than trusted, same
+    # "don't persist a dangling/invented id" rule the planning endpoints use.
+    source_planned_action_id = req.source_planned_action_id
+    if source_planned_action_id and not db.get(models.PlannedAction, source_planned_action_id):
+        source_planned_action_id = None
+
     decision = models.Decision(
         client_id=req.client_id, partner_id=req.partner_id, decision_type="creator_renewal",
         summary=req.summary, terms=req.terms, rationale=req.rationale,
         motivated_by_claim_ids=req.motivated_by_claim_ids, status="approved", synthetic=False,
+        source_planned_action_id=source_planned_action_id,
     )
     db.add(decision)
     db.flush()

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { ACCENT, SURFACE, TEXT } from "@/lib/design";
 import { withDerivedEdges, withoutRelationshipClaims } from "@/lib/graphAugment";
-import type { ActivityEvent, GraphNodeData, GraphResponse } from "@/lib/types";
+import type { ActivityEvent, GraphNodeData, GraphResponse, ScenarioComparisonRef } from "@/lib/types";
 import { ChatPanel } from "@/components/ChatPanel";
 import { IntelligenceGraph } from "@/components/IntelligenceGraph";
 import { MemoryInspector } from "@/components/MemoryInspector";
@@ -64,6 +64,17 @@ export function LiveDemoView() {
   const [focusNodeIds, setFocusNodeIds] = useState<string[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [demoEpoch, setDemoEpoch] = useState(0);
+  const [reviewCampaignRequest, setReviewCampaignRequest] = useState<{ campaignId: string; nonce: number } | null>(null);
+  const [partnerBriefRequest, setPartnerBriefRequest] = useState<{ partnerId: string; nonce: number } | null>(null);
+  const [memoryHistoryRequest, setMemoryHistoryRequest] = useState<{ subjectType: string; subjectId: string; predicate: string; nonce: number } | null>(null);
+  const [whatChangedRequest, setWhatChangedRequest] = useState<{ subjectType: string; subjectId: string; nonce: number } | null>(null);
+  const [scenarioComparisonRequest, setScenarioComparisonRequest] = useState<{ partnerId: string; currentAsk: number; nonce: number } | null>(null);
+  const [planBuildRequest, setPlanBuildRequest] = useState<{ planningPeriod: string | undefined; nonce: number } | null>(null);
+  // Scenario-comparison results carried into planning via "Use in plan"
+  // (spec Phase 6 Sec.16) - frontend-only draft state, never persisted;
+  // lives here (not in ChatPanel) so it survives across multiple Scenario
+  // Comparison messages and is available the next time a plan is built.
+  const [scenarioPlanInputs, setScenarioPlanInputs] = useState<ScenarioComparisonRef[]>([]);
 
   const [chatW, setChatW] = useState(CHAT_DEFAULT_CAP);
   const [inspectorW, setInspectorW] = useState(INSPECTOR_DEFAULT_CAP);
@@ -218,6 +229,43 @@ export function LiveDemoView() {
     setHighlightedIds(ids);
   }
 
+  function handleReviewCampaign(campaignId: string) {
+    setReviewCampaignRequest({ campaignId, nonce: Date.now() });
+  }
+
+  function handleGeneratePartnerBrief(partnerId: string) {
+    setPartnerBriefRequest({ partnerId, nonce: Date.now() });
+  }
+
+  function handleViewHistory(subjectType: string, subjectId: string, predicate: string) {
+    setMemoryHistoryRequest({ subjectType, subjectId, predicate, nonce: Date.now() });
+  }
+
+  function handleWhatChanged(subjectType: string, subjectId: string) {
+    setWhatChangedRequest({ subjectType, subjectId, nonce: Date.now() });
+  }
+
+  function handleCompareScenarios(partnerId: string, currentAsk: number) {
+    setScenarioComparisonRequest({ partnerId, currentAsk, nonce: Date.now() });
+  }
+
+  function handleBuildPlan(planningPeriod: string | undefined) {
+    setPlanBuildRequest({ planningPeriod, nonce: Date.now() });
+  }
+
+  function handleUseInPlan(ref: ScenarioComparisonRef) {
+    setScenarioPlanInputs((prev) => [...prev.filter((r) => r.partner_id !== ref.partner_id), ref]);
+  }
+
+  async function handleUpdatePlannedAction(actionId: string, patch: { status?: string; owner_id?: string | null; due_date?: string | null }) {
+    // `status` here is always one of PLANNED_ACTION_STATUSES (the <select>
+    // in MemoryInspector's PlannedActionSections is constrained to those
+    // exact literal values) - cast rather than re-import the union just for
+    // this call site.
+    await api.updatePlannedAction(actionId, patch as Parameters<typeof api.updatePlannedAction>[1]);
+    refresh([`planned_action:${actionId}`]);
+  }
+
   function handleDemoReset() {
     // Force ChatPanel to fully remount (clearing its message/candidate/
     // decision/outcome state, which is local to that component and would
@@ -227,6 +275,13 @@ export function LiveDemoView() {
     setSelectedId(null);
     setHighlightedIds([]);
     setFocusNodeIds([]);
+    setReviewCampaignRequest(null);
+    setPartnerBriefRequest(null);
+    setMemoryHistoryRequest(null);
+    setWhatChangedRequest(null);
+    setScenarioComparisonRequest(null);
+    setPlanBuildRequest(null);
+    setScenarioPlanInputs([]);
     refresh();
   }
 
@@ -290,7 +345,21 @@ export function LiveDemoView() {
         {chatVisible && (
           <>
             <section style={{ width: chatW, flex: "0 1 auto", minWidth: 240, display: "flex", flexDirection: "column", background: SURFACE.panel, minHeight: 0 }}>
-              <ChatPanel key={demoEpoch} clientId={CLIENT_ID} graph={graph} onAfterMutation={refresh} onHighlight={handleHighlight} />
+              <ChatPanel
+                key={demoEpoch}
+                clientId={CLIENT_ID}
+                graph={graph}
+                onAfterMutation={refresh}
+                onHighlight={handleHighlight}
+                reviewCampaignRequest={reviewCampaignRequest}
+                partnerBriefRequest={partnerBriefRequest}
+                memoryHistoryRequest={memoryHistoryRequest}
+                whatChangedRequest={whatChangedRequest}
+                scenarioComparisonRequest={scenarioComparisonRequest}
+                planBuildRequest={planBuildRequest}
+                scenarioPlanInputs={scenarioPlanInputs}
+                onUseInPlan={handleUseInPlan}
+              />
             </section>
             <ResizeDivider direction="col" onMouseDown={startChatResize} />
           </>
@@ -309,7 +378,17 @@ export function LiveDemoView() {
             <ResizeDivider direction="col" onMouseDown={startInspectorResize} />
             <section style={{ width: inspectorW, flex: "0 1 auto", minWidth: 220, display: "flex", flexDirection: "column", background: SURFACE.panel, minHeight: 0 }}>
               <div style={{ flex: "none", height: inspectorTopH, minHeight: 0, overflow: "hidden" }}>
-                <MemoryInspector node={displayedNode} graph={graph} />
+                <MemoryInspector
+                  node={displayedNode}
+                  graph={graph}
+                  onReviewCampaign={handleReviewCampaign}
+                  onGeneratePartnerBrief={handleGeneratePartnerBrief}
+                  onViewHistory={handleViewHistory}
+                  onWhatChanged={handleWhatChanged}
+                  onCompareScenarios={handleCompareScenarios}
+                  onBuildPlan={handleBuildPlan}
+                  onUpdatePlannedAction={handleUpdatePlannedAction}
+                />
               </div>
               <ResizeDivider direction="row" onMouseDown={startInspectorRowResize} />
               <ActivityFeed events={activity} />

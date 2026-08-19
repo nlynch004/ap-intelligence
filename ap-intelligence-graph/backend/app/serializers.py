@@ -30,7 +30,7 @@ def decision_to_out(d: models.Decision) -> schemas.DecisionOut:
         id=d.id, client_id=d.client_id, partner_id=d.partner_id, decision_type=d.decision_type,
         summary=d.summary, terms=d.terms, rationale=d.rationale,
         motivated_by_claim_ids=d.motivated_by_claim_ids, status=d.status, synthetic=d.synthetic,
-        created_at=d.created_at.isoformat(),
+        source_planned_action_id=d.source_planned_action_id, created_at=d.created_at.isoformat(),
     )
 
 

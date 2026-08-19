@@ -24,6 +24,39 @@
       "follower_tier": "Micro",
       "promo_code": "TESSA10",
       "relationship_status": "existing_creator_partner"
+    },
+    {
+      "id": "peak_pursuit",
+      "name": "Peak Pursuit",
+      "platform": "YouTube",
+      "follower_tier": "Large",
+      "promo_code": "PEAK15",
+      "relationship_status": "existing_creator_partner",
+      "synthetic": true,
+      "archetype": "peak_pursuit_strong_clean_ask_above_prior_fee",
+      "note": "Synthetic planning archetype: 3 clean campaigns with consistently strong, rising attributed revenue and no attribution hypothesis. The renewal ask ($8,000) is materially above the prior fee ($5,500) - the open planning tension is not whether the creator performs, but how much Northwind should be willing to pay for proven, established performance."
+    },
+    {
+      "id": "campfire_kate",
+      "name": "Campfire Kate",
+      "platform": "Instagram",
+      "follower_tier": "Micro",
+      "promo_code": "KATE10",
+      "relationship_status": "emerging_creator_partner",
+      "synthetic": true,
+      "archetype": "campfire_kate_moderate_performance_strong_fit",
+      "note": "Synthetic planning archetype: a newer, emerging relationship with moderate but clean ROAS and a lower commercial ceiling than an established creator like Peak Pursuit - but an audience that indexes toward first-time buyers, a closer strategic fit to a new-customer-acquisition objective. The tension is that weaker historical commerce may still represent stronger strategic fit."
+    },
+    {
+      "id": "backcountry_ben",
+      "name": "Backcountry Ben",
+      "platform": "TikTok",
+      "follower_tier": "Mid",
+      "promo_code": "BEN20",
+      "relationship_status": "existing_creator_partner",
+      "synthetic": true,
+      "archetype": "backcountry_ben_strong_content_weak_commerce",
+      "note": "Synthetic planning archetype: consistently high content engagement and clean attribution, but weaker attributed commerce relative to spend. Content quality and brand affinity appear strong, but direct-response economics are uncertain - this reflects an open question about continued investment, not a claim that the content is causing brand lift."
     }
   ],
   "publishers": [
@@ -83,6 +116,100 @@
       "link_clicks": 1604,
       "code_redemptions": 210,
       "attributed_revenue": 18098.77
+    },
+    {
+      "id": "camp_peak_2025_11",
+      "creator_id": "peak_pursuit",
+      "month": "2025-11",
+      "deliverables": "1 long-form video + 2 shorts",
+      "flat_fee": 5000,
+      "impressions": 450000,
+      "engagements": 42000,
+      "link_clicks": 1400,
+      "code_redemptions": 380,
+      "attributed_revenue": 22000,
+      "synthetic": true
+    },
+    {
+      "id": "camp_peak_2026_02",
+      "creator_id": "peak_pursuit",
+      "month": "2026-02",
+      "deliverables": "1 long-form video + 2 shorts",
+      "flat_fee": 5200,
+      "impressions": 462000,
+      "engagements": 43500,
+      "link_clicks": 1450,
+      "code_redemptions": 400,
+      "attributed_revenue": 24500,
+      "synthetic": true
+    },
+    {
+      "id": "camp_peak_2026_05",
+      "creator_id": "peak_pursuit",
+      "month": "2026-05",
+      "deliverables": "1 long-form video + 2 shorts",
+      "flat_fee": 5500,
+      "impressions": 475000,
+      "engagements": 45000,
+      "link_clicks": 1500,
+      "code_redemptions": 420,
+      "attributed_revenue": 27000,
+      "synthetic": true,
+      "note": "Synthetic: three consecutive clean, strong campaigns (ROAS ~4.4x-4.9x, rising each cycle). No attribution hypothesis. The renewal question being planned against is not creator quality but price - the ask is materially above this fee."
+    },
+    {
+      "id": "camp_kate_2026_02",
+      "creator_id": "campfire_kate",
+      "month": "2026-02",
+      "deliverables": "3 reels",
+      "flat_fee": 3000,
+      "impressions": 210000,
+      "engagements": 19500,
+      "link_clicks": 1100,
+      "code_redemptions": 290,
+      "attributed_revenue": 5800,
+      "synthetic": true
+    },
+    {
+      "id": "camp_kate_2026_05",
+      "creator_id": "campfire_kate",
+      "month": "2026-05",
+      "deliverables": "3 reels",
+      "flat_fee": 3200,
+      "impressions": 224000,
+      "engagements": 20800,
+      "link_clicks": 1150,
+      "code_redemptions": 310,
+      "attributed_revenue": 6900,
+      "synthetic": true,
+      "note": "Synthetic: moderate, clean ROAS (~1.9x-2.2x) from a newer relationship, well below Peak Pursuit's commercial performance. Audience composition indexes toward first-time buyers, which may matter more for a new-customer-acquisition objective than the raw ROAS gap suggests."
+    },
+    {
+      "id": "camp_ben_2025_12",
+      "creator_id": "backcountry_ben",
+      "month": "2025-12",
+      "deliverables": "4 short-form videos",
+      "flat_fee": 3500,
+      "impressions": 520000,
+      "engagements": 61000,
+      "link_clicks": 1800,
+      "code_redemptions": 200,
+      "attributed_revenue": 3200,
+      "synthetic": true
+    },
+    {
+      "id": "camp_ben_2026_04",
+      "creator_id": "backcountry_ben",
+      "month": "2026-04",
+      "deliverables": "4 short-form videos",
+      "flat_fee": 3600,
+      "impressions": 540000,
+      "engagements": 64000,
+      "link_clicks": 1850,
+      "code_redemptions": 230,
+      "attributed_revenue": 3900,
+      "synthetic": true,
+      "note": "Synthetic: the highest engagement rate of the three new archetypes (~11.8%) but attributed ROAS near breakeven (~0.9x-1.1x). Clean attribution, no leakage hypothesis - the uncertainty here is economic (is the content driving commerce Northwind can measure), not a measurement-quality problem."
     }
   ],
   "affiliate_snapshot": [

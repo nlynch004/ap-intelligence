@@ -30,7 +30,17 @@ const STAGE_CAMPAIGN = 4;
 const STAGE_CAMPAIGN_CLAIM = 5; // attribution/measurement hypotheses
 const STAGE_DECISION = 6;
 const STAGE_OUTCOME = 7;
-const STAGE_COUNT = 8;
+// Appended after every pre-existing stage (spec Phase 6 Sec.22: "add the new
+// node types to the existing deterministic column strategy" without a
+// broader layout rewrite) - deliberately NOT interleaved among the earlier
+// stages, so no existing node's column index changes and the verified
+// six-scene layout is provably unaffected by this phase. A Plan's HAS_PLAN
+// edge (from client, stage 2) and a PlannedAction's APPLIES_TO edge (to
+// partner, stage 3) both then point back toward earlier columns, which
+// bezierPath already renders correctly (see its "direction-aware" comment).
+const STAGE_PLAN = 8;
+const STAGE_PLANNED_ACTION = 9;
+const STAGE_COUNT = 10;
 
 // Predicates characterizing the account itself, as opposed to a specific
 // campaign's numbers (backend/app/memory/predicates.py). relationship_status
@@ -56,6 +66,10 @@ function stageIndexFor(node: GraphNodeData): number {
       return STAGE_OUTCOME;
     case "portfolio_pattern":
       return STAGE_LEFT_CONTEXT;
+    case "plan":
+      return STAGE_PLAN;
+    case "planned_action":
+      return STAGE_PLANNED_ACTION;
     case "memory_claim": {
       const predicate = node.data?.predicate as string | undefined;
       return predicate && ACCOUNT_LEVEL_PREDICATES.has(predicate) ? STAGE_LEFT_CONTEXT : STAGE_CAMPAIGN_CLAIM;
@@ -114,7 +128,7 @@ const LEGEND_ITEMS: { color: string; label: string }[] = [
   { color: ACCENT.sage, label: "Campaign" },
   { color: ACCENT.amber, label: "Uncertainty & review" },
   { color: ACCENT.green, label: "Decision & outcome" },
-  { color: ACCENT.purple, label: "Portfolio intelligence" },
+  { color: ACCENT.purple, label: "Portfolio & planning intelligence" },
   { color: ACCENT.historical, label: "Historical" },
 ];
 
@@ -231,6 +245,23 @@ export function IntelligenceGraph({ graph, highlightedIds = [], selectedId, onSe
       el.scrollTop = 0;
     });
   }
+
+  // First-paint framing only (not on every later graph change - a later
+  // re-frame is handled by the focusNodeIds effect above, which zooms to
+  // whatever just changed rather than the whole graph per its own comment).
+  // Needed because the layout's shared spine baseline (SPINE_Y) means a
+  // stage with many rows (e.g. campaigns, one row per seeded campaign) pulls
+  // every other stage's default scroll position away from view - at
+  // zoom=1/scroll=(0,0) the account's own context nodes can end up below
+  // the fold purely because some other stage happens to have more rows,
+  // which only gets more likely as more campaigns/plans/actions are seeded.
+  const didInitialFit = useRef(false);
+  useEffect(() => {
+    if (didInitialFit.current || graph.nodes.length === 0) return;
+    didInitialFit.current = true;
+    fitToView();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graph]);
   function resetLayout() {
     setZoom(1);
     setNodePos({});

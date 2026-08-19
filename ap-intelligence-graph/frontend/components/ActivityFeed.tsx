@@ -15,6 +15,9 @@ const EVENT_TITLE: Record<string, string> = {
   OUTCOME: "Outcome recorded",
   PROMOTE: "Portfolio pattern updated",
   REJECT: "Candidate rejected",
+  PLAN_CREATED: "Plan created",
+  PLANNED_ACTION_APPROVED: "Planned action approved",
+  PLANNED_ACTION_STATUS_CHANGED: "Planned action updated",
 };
 
 const EVENT_DOT: Record<string, string> = {
@@ -26,6 +29,9 @@ const EVENT_DOT: Record<string, string> = {
   OUTCOME: ACCENT.purple,
   PROMOTE: ACCENT.purple,
   REJECT: TEXT.faint,
+  PLAN_CREATED: ACCENT.purple,
+  PLANNED_ACTION_APPROVED: ACCENT.purple,
+  PLANNED_ACTION_STATUS_CHANGED: ACCENT.purple,
 };
 
 export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
