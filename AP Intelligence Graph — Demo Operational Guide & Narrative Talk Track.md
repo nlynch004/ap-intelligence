@@ -385,6 +385,36 @@ The underlying active-memory selection is deterministic.
 
 ---
 
+## Exact backend input / output contract
+
+**Input sent to the model** — deliberately compact, and only `predicate`/`value` pairs, nothing else:
+
+```text
+active_client_memories(db, client_id)
+  → [{"predicate": "partnership_strategy", "value": "aggressively_grow_coupon_partnerships"}, ...]
+```
+
+No ids, confidence, source, or timestamps are sent. This is also the one call in the whole app that isn't asked for JSON — the system prompt lives inline in `OpenAIProvider.summarize()`, not in `agents/prompts.py` with everything else:
+
+> "You write brief, concrete account-status summaries for AP account managers. 2-4 sentences, no fluff."
+
+User prompt:
+
+```text
+Client: Northwind Outfitters
+Active memory:
+- partnership_strategy: aggressively_grow_coupon_partnerships
+- relationship_status: ...
+
+Summarize what AP currently knows about this client.
+```
+
+**What the model is asked to produce:** plain prose, not structured JSON — the only exception to the "everything is validated JSON" rule elsewhere in the app.
+
+**How the output is generated:** the string comes back as `ChatResponse.reply` verbatim — no schema, no computed fields, nothing to validate. Because there's no JSON to malform, there's also no `RawXOut` validator or fallback-on-invalid-shape step here; the only failure mode is the call itself erroring, in which case `call_with_fallback` runs the mock provider's own rule-based summarizer (`"- {predicate}: {value}"` per line) instead. `referenced_memory_ids` (which drives the graph highlight) is attached separately from the same `active_client_memories` query — never parsed out of the model's text.
+
+---
+
 ## While testing, verify
 
 - Old coupon-growth strategy appears.
@@ -512,6 +542,63 @@ client_strategy
 ```
 
 is handled by a governed alias table.
+
+---
+
+## Exact backend input / output contract
+
+**Input sent to the model:**
+
+```text
+client_id: northwind
+client_name: Northwind Outfitters
+KNOWN PREDICATES for this client (reuse exactly when applicable): partnership_strategy, relationship_status, negotiation_history, attribution_integrity_risk
+KNOWN PARTNERS for this client (reuse the id exactly when the message names one of them): summit_sisters: Summit Sisters (creator), peak_pursuit: Peak Pursuit (creator), campfire_kate: Campfire Kate (creator), backcountry_ben: Backcountry Ben (creator), trail_with_tessa: Trail With Tessa (creator)
+message: Northwind's strategy changed after last week's executive review. They now want to reduce coupon dependence and prioritize new-customer growth, even if short-term ROAS is a little lower.
+```
+
+`known_predicates`/`known_partners` exist for one reason: conflict detection downstream is an **exact-string match**, not semantic. If the model paraphrases a predicate name or invents a new slug for an existing partner, the conflict lookup silently misses it. Feeding back the client's actual current vocabulary steers the model to reuse it.
+
+The system prompt (`EXTRACTION_SYSTEM_PROMPT`, `agents/prompts.py`) spells out, with worked examples: the required field list per claim; a lookup table of which predicate belongs to which `subject_type` (getting this wrong attaches an otherwise-correct claim to the wrong graph entity — e.g. a `relationship_status` claim about a named partner must have `subject_type: "creator"`, never `"client"`, even when the sentence is phrased from the account team's point of view); to split one sentence bundling several facts into separate claims; and to reuse a KNOWN PREDICATES/KNOWN PARTNERS entry verbatim rather than inventing a near-duplicate.
+
+**What the model is asked to produce**, one object per claim, wrapped as `{"claims": [...]}`:
+
+```json
+{
+  "type": "client_preference",
+  "subject_type": "client",
+  "subject_id": "northwind",
+  "subject_label": "Northwind Outfitters",
+  "predicate": "partnership_strategy",
+  "value": "reduce_coupon_dependence",
+  "claim_class": "verified_fact",
+  "confidence": 0.93,
+  "rationale": "Account team stated the client's strategy shifted away from coupon growth."
+}
+```
+
+It is explicitly correct for this to come back as an **empty list** — the prompt tells the model not to force a claim out of vague chatter.
+
+**How each claim becomes governed memory (or doesn't)** — all deterministic, none of it is the model's decision:
+
+```text
+raw claim dict (one per extracted claim)
+   ↓
+ExtractedClaimIn(**raw)            Pydantic validation — malformed/out-of-range dropped, never persisted or shown
+   ↓
+normalize_predicate(predicate)     deterministic alias table lookup
+   ↓
+   known predicate? ──no──►  proposed_operation = REQUEST_HUMAN_REVIEW  (skips automatic conflict matching)
+   │ yes
+   ↓
+find_active_conflict(subject_type, subject_id, predicate, client_id)   exact-match DB lookup, not the model's job
+   ↓
+decide_operation(payload, existing)   → CREATE | UPDATE | SUPERSEDE
+   ↓
+pending MemoryCandidate row (status = "pending")
+```
+
+Nothing below the Pydantic-validation line is written to canonical memory yet, and nothing above it is model-influenced — the model supplies claim *content*; the app decides what operation that content implies and whether it's even a recognized concept.
 
 ---
 
@@ -644,6 +731,12 @@ new.supersedes = old.id
 ```
 
 Old memory remains in the database.
+
+---
+
+## No model call in this step
+
+Worth stating explicitly if asked: clicking **Approve all** and then **Supersede** never calls the LLM. The claim content was already generated back in Scene 2 and is sitting in the `memory_candidates` table with `status = "pending"`; this step only runs `execute_supersede()` (or `execute_create()`/`execute_update()` for the two non-conflicting candidates) — a plain state-transition function operating on data that already exists. Input: the candidate's stored `claim_payload` dict + the existing conflicting claim's row. Output: two updated rows (`old.status/valid_to/superseded_by`, `new` claim inserted with `supersedes: [old.id]`) plus one `ActivityEvent` and the matching graph edges (`SUPERSEDES`, and a `HAS_STRATEGY`/`HAS_GOAL`/etc. edge from the client to the new claim). If a live audience asks "what does the model do when I click Supersede," the honest answer is: nothing — it already did its job upstream, in Scene 2.
 
 ---
 
@@ -919,6 +1012,70 @@ Say:
 
 ---
 
+## Exact backend input / output contract
+
+**Input sent to the model** — not raw DB rows, a compact plain-text digest (`evidence_brief`) assembled by `build_recommendation_context()`, plus a small structured `context` dict:
+
+```text
+TRUSTED CLIENT MEMORY
+- Northwind Outfitters partnership strategy: reduce coupon dependence.
+- Northwind Outfitters primary growth objective: new customer acquisition.
+- Northwind Outfitters accepts tradeoff: lower short term roas.
+
+CURRENT PARTNER DATA
+- Summit Sisters has 3 prior campaign(s) with attributed revenue up to $31,240.
+- The 2026-05 campaign shows an unusual redemption-to-click relationship (1847 redemptions vs 385 clicks).
+
+PORTFOLIO EXPERIENCE
+- 31 comparable creator-renewal decisions across AP's synthetic portfolio (21 positive).
+- Hybrid compensation succeeded 71% of the time vs 45% for flat-fee renewal in comparable cases (synthetic AP portfolio data).
+
+CAUTION
+- possible promo code leakage is an unverified hypothesis (confidence 0.65), not a confirmed fact.
+```
+
+```json
+{"client_name": "Northwind Outfitters", "partner_name": "Summit Sisters", "primary_goal": "new customer acquisition", "strategy": "reduce coupon dependence", "has_attribution_hypothesis": true, "has_hybrid_pattern": true, "prior_fee": 4200}
+```
+
+The system prompt (`RECOMMENDATION_SYSTEM_PROMPT`) sets hard rules: treat TRUSTED CLIENT MEMORY / CURRENT PARTNER DATA as reliable; treat CAUTION items as unverified hypotheses, call them out explicitly if they bear on the recommendation, never state them as fact; treat PORTFOLIO EXPERIENCE as supporting evidence from comparable cases, not universal truth or proof of causality; never convert attributed revenue into causal incrementality; if a caution casts doubt on how a metric was tracked, prefer a bonus basis the caution doesn't call into question (e.g. `verified_new_customer_revenue` over raw `attributed_revenue`); never invent a metric absent from the brief.
+
+**What the model is asked to produce:**
+
+```json
+{
+  "recommendation": "renew_with_hybrid_compensation",
+  "recommended_terms": { "base_fee": 4200, "performance_bonus_pct": 15, "bonus_basis": "verified_new_customer_revenue" },
+  "confidence": 0.74,
+  "uncertainties": ["Promo-code leakage is suspected but not verified."],
+  "explanation": "..."
+}
+```
+
+Note what is deliberately **not** in that shape: no `supporting_memory_ids` field exists on the validation schema at all — even if a model included one, `RawRecommendationOut.model_dump()` would silently drop it. The model is never given the opportunity to claim which records it used.
+
+**How the output is generated / governed:**
+
+```text
+question + evidence_brief + context
+   ↓
+call_with_fallback("recommend", question, evidence_brief, context, validate=validate_raw_recommendation)
+   ↓
+RawRecommendationOut Pydantic validation
+     — recommendation non-blank
+     — recommended_terms.base_fee > 0
+     — recommended_terms.performance_bonus_pct in [0, 100]
+     — confidence in [0.0, 1.0]
+   ↓                              ↓ invalid / call errors
+  valid                    mock provider's own deterministic recommend() runs instead —
+   ↓                        the same fallback path as every other bounded call
+RecommendationResponse assembled
+```
+
+Everything in the Decision Evidence panel itself — `commercial_ask` (proposed fee, prior fee, % increase), `prior_performance` (per-campaign fee/revenue/ROAS), `measurement_cautions`, `client_memory`, `portfolio_evidence` — is a separate object (`DecisionEvidence`) built in the *same* Python function, from the *same* retrieved rows, **before** the model is ever called. The model never sees this structured object and never produces any part of it; it only ever sees the prose `evidence_brief` version of the same facts.
+
+---
+
 # SCENE 5 — Capture the decision
 
 ## User action
@@ -1001,6 +1158,12 @@ Relevant memories
 
 ---
 
+## No model call in this step
+
+**Input:** exactly the `recommendation`/`recommended_terms`/`explanation`/`supporting_memory_ids` the frontend already holds in memory from Scene 4's response — nothing is re-fetched or re-asked of the model. **Output:** a single `POST /api/decisions` call that inserts one `Decision` row plus the three graph edges above (`motivated_by_claim_ids` fans out into one `MOTIVATED_BY` edge per id). No LLM call happens on Accept — the decision text you're capturing here was already generated a step earlier; this click only makes it durable.
+
+---
+
 ## While testing, verify
 
 - Decision node is visible.
@@ -1042,7 +1205,18 @@ Positive outcomes:
 21 → 22
 ```
 
+---
 
+## No model call in this step
+
+Also fully deterministic, and explicitly demo-only: `POST /api/decisions/{id}/simulate-outcome` seeds `random.Random(decision_id)` — keyed off the decision's own id, so re-running it against the same decision always produces the same numbers — then computes:
+
+```text
+verified_new_customer_revenue = round(base_fee * uniform(5.5, 6.5), -2)
+attributed_revenue            = round(verified_new_customer_revenue * uniform(1.3, 1.5), -2)
+```
+
+off the decision's own `base_fee`, always labeled `outcome_label: "positive"` and `is_simulated: true`. **Input:** the decision's stored terms. **Output:** one `Outcome` row, a `RESULTED_IN` edge, and — only if the decision's `motivated_by_claim_ids` included the hybrid portfolio pattern's id — a call to `execute_promote_pattern_evidence()`, which increments that pattern's `evidence_count`/`positive_outcomes` by exactly 1 and appends the decision id to `supporting_decision_ids`. No model call, and nothing here claims to represent a real commercial result — a production version would replace this endpoint with an ingestion pipeline reading actual downstream campaign performance, not a random-number generator.
 
 ---
 
@@ -1113,6 +1287,23 @@ Updated portfolio evidence
 Then say:
 
 > “This is a bounded agentic system. I intentionally didn't build an open-ended autonomous loop.”
+
+---
+
+## Which of the six scenes actually call the model
+
+Worth having ready if asked directly — only half the scenes touch the LLM at all:
+
+```text
+Scene 1  Bring me up to speed        LLM call   (summarize — plain prose, no JSON/validation)
+Scene 2  Teach the system something  LLM call   (extract_claims — JSON, Pydantic-validated)
+Scene 3  Approve → Supersede         no model   (deterministic state transition on Scene 2's already-generated content)
+Scene 4  Renewal decision            LLM call   (recommend — JSON, Pydantic-validated)
+Scene 5  Accept recommendation       no model   (persists exactly what Scene 4 already produced)
+Scene 6  Simulate future outcome     no model   (seeded RNG, explicitly demo-only)
+```
+
+Every LLM call above shares the same contract: the application builds the evidence *before* the call, validates the model's output *after* the call (`RawXOut` Pydantic schema, or nothing to validate for Scene 1's plain-text case), and falls back to a deterministic mock implementation of that same method on any call failure or validation failure — never an unhandled exception, never unvalidated data reaching a router.
 
 ---
 
