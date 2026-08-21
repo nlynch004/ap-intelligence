@@ -42,26 +42,10 @@ type Msg =
   | { id: string; role: "scenario_comparison"; comparison: ScenarioComparisonResponse }
   | { id: string; role: "plan_proposal"; proposal: PlanProposalResponse };
 
-// The three-step "Creator renewal" workflow (design_handoff v2 Sec.2) maps
-// 1:1 to this demo script's canned prompts - the same prompts previously
-// offered as free-standing suggestion buttons. `stage` below is derived from
-// real conversation/candidate/recommendation state, never persisted
-// separately (spec "State Management": workflow state must remain a
-// projection of real application state).
 const STEP_DEFS = [
   {
     title: "Summit Sisters context",
     desc: "Retrieve current Summit Sisters context",
-    // Deliberately partner-scoped in wording, not just "...on Northwind." -
-    // the underlying query (active_client_memories) is still a broad,
-    // unscoped pull of every active claim tied to this client, but since
-    // Phase 1 added 4 more creators with no governed relationship memory of
-    // their own (only campaign/evidence rows for the newer Campaign
-    // Review/Partner Brief/Scenario Comparison workflows to use), Summit
-    // Sisters remains the only partner-level belief that exists at a fresh
-    // reset. Naming her here keeps the prompt honest about what the answer
-    // will actually cover, rather than reading like a full-portfolio ask it
-    // can't yet back up.
     prompt: "Bring me up to speed on Northwind's partnership with Summit Sisters.",
   },
   {
@@ -73,8 +57,6 @@ const STEP_DEFS = [
   { title: "Renewal decision", desc: "Evaluate Summit Sisters", prompt: "Summit Sisters wants $6,000 for another campaign. Should we renew them?" },
 ];
 
-// Bounds for the draggable divider between the "Demo steps" block and
-// "Chat conversation" below it.
 const STEPS_DEFAULT_H = 240;
 const STEPS_MIN_H = 130;
 const STEPS_MAX_H = 460;
@@ -98,39 +80,14 @@ export function ChatPanel({
 }: {
   clientId: string;
   graph: GraphResponse | null;
-  /** focusIds, when given, are the graph node ids of whatever was just
-   * created/changed - the parent re-frames the graph viewport around them. */
   onAfterMutation: (focusIds?: string[]) => void;
   onHighlight: (ids: string[]) => void;
-  /** Set by the "Review campaign" button in MemoryInspector (via
-   * LiveDemoView) - a distinct object each click (nonce) so the effect
-   * below fires even for the same campaign twice in a row. The bounded
-   * chat-text path ("Review Summit Sisters' May 2026 campaign.") reaches
-   * the same backend pipeline through send() instead - this prop exists
-   * only for the button, which already knows the exact campaign id and
-   * has no reason to go through NLU month/partner matching. */
   reviewCampaignRequest?: { campaignId: string; nonce: number } | null;
-  /** Same pattern as reviewCampaignRequest, for the "Generate partner
-   * brief" button (Phase 3). The bounded chat-text path ("What should I
-   * know before I speak with Summit Sisters?") reaches the same backend
-   * pipeline through send() instead. */
   partnerBriefRequest?: { partnerId: string; nonce: number } | null;
-  /** Same pattern, for the "View history" button on a MemoryClaim node
-   * (Phase 4) - the claim already names its own subject_type/subject_id/
-   * predicate, so the button skips NLU entirely. */
   memoryHistoryRequest?: { subjectType: string; subjectId: string; predicate: string; nonce: number } | null;
-  /** Same pattern, for the "What changed?" button on a Client/Partner node. */
   whatChangedRequest?: { subjectType: string; subjectId: string; nonce: number } | null;
-  /** Same pattern, for the "Compare scenarios" button on a Partner node
-   * (Phase 5) - the button collects the current renewal ask inline before
-   * firing this request, since the ask must never be invented. */
   scenarioComparisonRequest?: { partnerId: string; currentAsk: number; nonce: number } | null;
-  /** Same pattern, for the "Build plan" button on the Client node (Phase 6). */
   planBuildRequest?: { planningPeriod: string | undefined; nonce: number } | null;
-  /** Scenario-comparison results the user has carried into planning via
-   * "Use in plan" (Phase 6 Sec.16) - frontend-only state, owned by
-   * LiveDemoView so it survives across chat/button entry points and across
-   * multiple Scenario Comparison messages, but never persisted. */
   scenarioPlanInputs?: ScenarioComparisonRef[];
   onUseInPlan?: (ref: ScenarioComparisonRef) => void;
 }) {
@@ -145,9 +102,6 @@ export function ChatPanel({
   const [planCreations, setPlanCreations] = useState<Record<string, PlanCreateResponse>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Draggable horizontal divider between the "Demo steps" block and "Chat
-  // conversation" below it - same mousedown/window-mousemove/mouseup
-  // pattern as the vertical panel dividers in LiveDemoView.tsx.
   const [stepsH, setStepsH] = useState(STEPS_DEFAULT_H);
   const stepsDragRef = useRef<{ startY: number; startVal: number } | null>(null);
 
@@ -177,14 +131,7 @@ export function ChatPanel({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, resolved, decisions, outcomes, planCreations]);
 
-  // Derived workflow stage (0-3): how many of the three canned steps have
-  // run their course. Never a separate source of truth - just a read of the
-  // conversation transcript that's already state here.
   const stage = useMemo(() => {
-    // campaign_review counts toward "an assistant reply happened" the same
-    // way a plain assistant message does - it's an off-script query, not
-    // one of the three canned steps, so it must not itself advance stage
-    // past where the canned steps already are.
     const hasAssistantReply = messages.some((m) =>
       m.role === "assistant" || m.role === "campaign_review" || m.role === "partner_brief" ||
       m.role === "memory_history" || m.role === "what_changed" || m.role === "scenario_comparison" ||
@@ -203,9 +150,6 @@ export function ChatPanel({
   }, [messages, resolved]);
 
   function partnerName(partnerId: string): string {
-    // Graph node ids are keyed by the backend's raw entity-table name
-    // ("partner"), not the resolved display kind ("creator"/"publisher") -
-    // see node_key() in app/routers/graph.py.
     const node = graph?.nodes.find((n) => n.id === `partner:${partnerId}`);
     return node?.label ?? partnerId.replace(/_/g, " ");
   }
@@ -255,11 +199,6 @@ export function ChatPanel({
     ]);
   }
 
-  // Driven by the "Review campaign" button (MemoryInspector, via
-  // LiveDemoView) - calls the dedicated campaign-review endpoint directly
-  // with the exact campaign id already known, rather than going through
-  // send()'s NLU matching (that path exists for free-text chat instead -
-  // see the module doc comment on reviewCampaignRequest above).
   async function reviewCampaignById(campaignId: string) {
     setMessages((m) => [...m, { id: nextId(), role: "user", text: "Review this campaign." }]);
     setSending(true);
@@ -293,9 +232,6 @@ export function ChatPanel({
     ]);
   }
 
-  // Driven by the "Generate partner brief" button (MemoryInspector, via
-  // LiveDemoView) - same rationale as reviewCampaignById above: the exact
-  // partner id is already known, no need to go through send()'s NLU path.
   async function generatePartnerBriefById(partnerId: string) {
     setMessages((m) => [...m, { id: nextId(), role: "user", text: "Generate a partner brief." }]);
     setSending(true);
@@ -320,8 +256,6 @@ export function ChatPanel({
     onHighlight(history.timeline.changes.map((c) => `memory_claim:${c.claim_id}`));
   }
 
-  // Driven by the "View history" button on a MemoryClaim node (Phase 4) -
-  // the claim already names its own subject_type/subject_id/predicate.
   async function viewHistoryById(subjectType: string, subjectId: string, predicate: string) {
     setMessages((m) => [...m, { id: nextId(), role: "user", text: "View history." }]);
     setSending(true);
@@ -345,7 +279,6 @@ export function ChatPanel({
     setMessages((m) => [...m, { id: nextId(), role: "what_changed", summary }]);
   }
 
-  // Driven by the "What changed?" button on a Client/Partner node (Phase 4).
   async function whatChangedById(subjectType: string, subjectId: string) {
     setMessages((m) => [...m, { id: nextId(), role: "user", text: "What changed?" }]);
     setSending(true);
@@ -377,9 +310,6 @@ export function ChatPanel({
     ]);
   }
 
-  // Driven by the "Compare scenarios" button (MemoryInspector, via
-  // LiveDemoView) - the button already collected the current renewal ask
-  // inline, so this skips send()'s NLU/dollar-amount parsing entirely.
   async function compareScenariosById(partnerId: string, currentAsk: number) {
     setMessages((m) => [...m, { id: nextId(), role: "user", text: `Compare renewal scenarios (current ask $${currentAsk.toLocaleString()}).` }]);
     setSending(true);
@@ -409,9 +339,6 @@ export function ChatPanel({
     ]);
   }
 
-  // Driven by the "Build plan" button (MemoryInspector, via LiveDemoView) -
-  // client-level, so unlike the other by-id helpers this needs no entity id
-  // beyond clientId, which the panel already has.
   async function buildPlanById(planningPeriod: string | undefined) {
     setMessages((m) => [...m, { id: nextId(), role: "user", text: planningPeriod ? `Build Northwind's ${planningPeriod} creator plan.` : "Build Northwind's next creator plan." }]);
     setSending(true);
@@ -431,9 +358,6 @@ export function ChatPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planBuildRequest]);
 
-  // Persists only the actions the human approved (spec Phase 6 Sec.14 step
-  // 3) - the proposal itself (msgId's PlanProposalResponse) never wrote
-  // anything; this is the one call in the whole planning flow that does.
   async function createPlanFromApproved(msgId: string, proposal: PlanProposalResponse, approved: ProposedPlannedAction[]) {
     setBusyId(msgId);
     try {
@@ -501,8 +425,6 @@ export function ChatPanel({
       const resp = await api.resolveConflict(activeConflict.candidate.id, operation);
       setResolved((r) => ({ ...r, [activeConflict.candidate.id]: operation === "SUPERSEDE" ? "approved" : "rejected" }));
       setActiveConflict(null);
-      // Focus both the new active claim and the now-superseded one, so the
-      // supersession is visually legible (old node dimmed, new one active).
       const focusIds = [resp.new_claim, resp.superseded_claim]
         .filter((c): c is NonNullable<typeof c> => c != null)
         .map((c) => `memory_claim:${c.id}`);

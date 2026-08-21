@@ -3,9 +3,6 @@
 import { ACCENT, FONT_MONO, SURFACE, TEXT, titleCase } from "@/lib/design";
 import type { ActivityEvent } from "@/lib/types";
 
-// Raw event types (backend/app/memory/operations.py, app/routers/decisions.py)
-// are never shown directly - the human title carries the meaning (design_handoff
-// v2 Sec.5: "Raw event types are not displayed").
 const EVENT_TITLE: Record<string, string> = {
   SEED: "Account graph loaded",
   CREATE: "Memory recorded",

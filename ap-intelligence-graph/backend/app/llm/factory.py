@@ -1,5 +1,3 @@
-"""Picks the LLM provider. One place to change to swap providers app-wide."""
-
 import logging
 
 from app.config import settings
@@ -32,17 +30,6 @@ def get_provider() -> LLMProvider:
 
 
 def call_with_fallback(fn_name: str, *args, validate=None, **kwargs):
-    """Call `fn_name` on the live provider; on any runtime error (bad key,
-    network, rate limit, malformed JSON) OR a structurally invalid result,
-    fall back to the deterministic provider so a mid-demo API hiccup - or an
-    LLM response that doesn't match the expected schema - never breaks the
-    flow with an unhandled exception.
-
-    `validate`, if given, is a callable(raw_result) -> result that raises on
-    a structurally invalid result and otherwise returns the (possibly
-    normalized) result. A validation failure is treated exactly like a call
-    failure: it triggers the same mock fallback, not a propagated exception.
-    """
 
     def _mock_result():
         result = getattr(_mock, fn_name)(*args, **kwargs)

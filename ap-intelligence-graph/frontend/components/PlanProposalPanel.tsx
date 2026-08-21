@@ -84,15 +84,6 @@ function ActionCard({
   );
 }
 
-/**
- * Renders backend/app/schemas.py::PlanProposalResponse - a MODEL PROPOSAL,
- * never an already-committed plan (spec Phase 6 Sec.13/39: "Make it
- * visually obvious: PROPOSED PLAN vs APPROVED PLAN"). Each action is
- * individually approved/rejected (local state only, nothing persists until
- * "Create plan" is pressed) - resolved entirely client-side until the human
- * commits, at which point the parent (ChatPanel) calls the real
- * POST /api/plans with only the approved subset.
- */
 export function PlanProposalPanel({
   proposal,
   createdPlan,

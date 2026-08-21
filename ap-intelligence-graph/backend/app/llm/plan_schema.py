@@ -1,14 +1,3 @@
-"""Pydantic validation for raw plan-proposal-agent output (spec Phase 6).
-Same role as scenario_comparison_schema.py: validates the STRUCTURAL shape
-`llm/factory.py::call_with_fallback` checks before trusting a live response.
-
-Runtime, PlanningContext-dependent validation (does partner_id name a real
-partner, are the supporting ids real, is source_scenario_id one this partner
-actually has) is NOT a static Pydantic rule and does not belong here - that
-sanitization happens in app.memory.planning_rules, composed into the same
-call_with_fallback `validate=` hook by app.agents.plan_agent, exactly like
-scenario_comparison_agent.py composes its own runtime check."""
-
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 ACTION_TYPES = ("renew", "renegotiate", "test", "expand", "pause", "review_measurement", "follow_up")
@@ -59,5 +48,4 @@ class RawPlanProposalOut(BaseModel):
 
 
 def validate_raw_plan_proposal(raw: object) -> dict:
-    """Raises on any structural problem; returns a plain dict on success."""
     return RawPlanProposalOut(**raw).model_dump()

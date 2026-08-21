@@ -1,15 +1,3 @@
-"""Idempotent seed loader.
-
-Loads the two data fixtures (`data/northwind_seed.json` - real case-study
-data, `data/synthetic_portfolio.json` - fictional cross-client portfolio)
-into SQLite. Safe to call on every startup: if `clients` already has rows,
-it's a no-op unless `reset=True`.
-
-The attribution hypothesis (spec Sec.26) is *not* hardcoded here - it is
-derived deterministically from the campaign numbers by `_derive_attribution_hypothesis`,
-matching spec Sec.26's "can either be seeded or generated deterministically."
-"""
-
 import argparse
 import json
 from pathlib import Path
@@ -32,7 +20,7 @@ from app.models import (
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
-REDEMPTION_LEAKAGE_RATIO = 1.5  # redemptions > clicks * ratio triggers the hypothesis
+REDEMPTION_LEAKAGE_RATIO = 1.5
 
 
 def _load_json(name: str) -> dict:
@@ -40,10 +28,6 @@ def _load_json(name: str) -> dict:
 
 
 def _derive_attribution_hypothesis(campaign: dict) -> dict | None:
-    """Deterministic rule: if code redemptions materially exceed tracked link
-    clicks, flag a promo-code-leakage hypothesis. Confidence scales mildly
-    with how extreme the ratio is, capped well below 'verified' territory -
-    this must never look like a fact (spec Sec.5, Sec.13)."""
     clicks = campaign.get("link_clicks") or 0
     redemptions = campaign.get("code_redemptions") or 0
     if clicks <= 0 or redemptions <= clicks * REDEMPTION_LEAKAGE_RATIO:
@@ -59,11 +43,6 @@ def _derive_attribution_hypothesis(campaign: dict) -> dict | None:
         "value": "possible_promo_code_leakage",
         "claim_class": "hypothesis",
         "confidence": confidence,
-        # Derived from the same canonical authority table every other write
-        # path uses (app/memory/operations.py::SOURCE_AUTHORITY), rather
-        # than a hand-picked value that could silently drift from it - this
-        # is exactly what happened before (0.4 here vs 0.35 in the table
-        # for the same "agent_inference" source type).
         "authority_score": authority_for_source("agent_inference"),
         "source": {
             "type": "agent_inference",
@@ -112,7 +91,6 @@ def seed(db: Session, reset: bool = False) -> None:
     nw = _load_json("northwind_seed.json")
     pf = _load_json("synthetic_portfolio.json")
 
-    # --- Northwind (real case-study data) ---
     db.add(Client(id=nw["client"]["id"], name=nw["client"]["name"], industry=nw["client"].get("industry"), synthetic=False))
 
     for tm in nw["team_members"]:
@@ -145,14 +123,9 @@ def seed(db: Session, reset: bool = False) -> None:
 
     db.flush()
 
-    # --- graph edges for Northwind's real entities ---
     client_id = nw["client"]["id"]
     db.add(MemoryEdge(from_type="team_member", from_id="jessica_moreno", to_type="client", to_id=client_id, relationship="MANAGES"))
     db.add(MemoryEdge(from_type="team_member", from_id="jessica_moreno", to_type="partner", to_id="summit_sisters", relationship="WORKED_WITH"))
-    # New Phase-1 synthetic archetypes: each gets its own WORKED_WITH edge
-    # from the Northwind account lead, mirroring the existing Summit Sisters
-    # convention (deliberately not a generalized loop over all creators, so
-    # Trail With Tessa - which has never had this edge - stays unchanged).
     db.add(MemoryEdge(from_type="team_member", from_id="jessica_moreno", to_type="partner", to_id="peak_pursuit", relationship="WORKED_WITH"))
     db.add(MemoryEdge(from_type="team_member", from_id="jessica_moreno", to_type="partner", to_id="campfire_kate", relationship="WORKED_WITH"))
     db.add(MemoryEdge(from_type="team_member", from_id="jessica_moreno", to_type="partner", to_id="backcountry_ben", relationship="WORKED_WITH"))
@@ -164,7 +137,6 @@ def seed(db: Session, reset: bool = False) -> None:
         hyp_id = f"mem_{camp['id']}_attribution_risk"
         db.add(MemoryEdge(from_type="campaign", from_id=camp["id"], to_type="memory_claim", to_id=hyp_id, relationship="HAS_RISK", client_id=client_id))
 
-    # --- synthetic portfolio layer ---
     seen_team_ids = {tm.id for tm in db.query(TeamMember).all()}
     for cl in pf["clients"]:
         db.add(Client(id=cl["id"], name=cl["name"], industry=cl.get("industry"), synthetic=True))
@@ -201,9 +173,6 @@ def seed(db: Session, reset: bool = False) -> None:
             supporting_decision_ids=pat["supporting_decision_ids"], synthetic=True,
         ))
 
-    # Make the approved privacy-safe portfolio pattern visible in Northwind's
-    # graph from the start (spec Sec.29: aggregated portfolio intelligence is
-    # legitimately visible to any client team, unlike raw cross-client terms).
     hybrid_pattern = next((p for p in pf["patterns"] if p["status"] == "approved_portfolio_pattern"), None)
     if hybrid_pattern:
         db.add(MemoryEdge(

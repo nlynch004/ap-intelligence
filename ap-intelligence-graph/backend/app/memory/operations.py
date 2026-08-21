@@ -1,19 +1,9 @@
-"""Executes the explicit memory operations (spec Sec.9).
-
-Only application code writes to memory_claims - never the LLM directly
-(spec Sec.10: "New memory must not be written directly by the conversational
-agent."). Each function here does one state transition, logs an
-ActivityEvent, and (where relevant) writes the matching graph edge.
-"""
-
 from datetime import date, datetime, timezone
 
 from sqlalchemy.orm import Session
 
 from app.models import ActivityEvent, MemoryClaim, MemoryEdge, PortfolioPattern
 
-# Source authority hierarchy (spec Sec.12). A high-confidence model inference
-# must never automatically outrank verified system data.
 SOURCE_AUTHORITY = {
     "structured_system_of_record": 0.95,
     "account_team_statement": 0.85,
@@ -23,8 +13,6 @@ SOURCE_AUTHORITY = {
     "agent_inference": 0.35,
 }
 
-# predicate -> graph relationship label, for claims that represent a named
-# relationship type from spec Sec.16. Falls back to a generic label.
 PREDICATE_RELATIONSHIP = {
     "primary_growth_objective": "HAS_GOAL",
     "partnership_strategy": "HAS_STRATEGY",
@@ -136,8 +124,6 @@ def execute_reject(db: Session, client_id: str | None, reason: str) -> None:
 
 
 def execute_promote_pattern_evidence(db: Session, pattern: PortfolioPattern, *, positive: bool, new_decision_id: str) -> tuple[int, int]:
-    """Increment a portfolio pattern's evidence count with one new real
-    outcome (spec Sec.14, Scene 6). Returns (count_before, count_after)."""
     before = pattern.evidence_count
     pattern.evidence_count += 1
     if positive and pattern.positive_outcomes is not None:

@@ -1,10 +1,3 @@
-// Authored presenter content for the post-demo "Discussion Guide" tab.
-// Static, hand-written talking points - no backend/API/LLM dependency and
-// nothing derived from live graph or demo state. See components/DiscussionGuide.tsx
-// for the renderer. Content is intentionally verbatim to the discussion brief
-// this was drafted from, condensed only where that brief said to keep things
-// compact (Section 02's RAG-vs-governed-memory comparison).
-
 export interface TwoColumn {
   heading: string;
   bullets: string[];
@@ -133,16 +126,13 @@ export interface MeasurementSection {
 
 export interface FlowLayer {
   heading: string;
-  /** Sub-caption under the heading, e.g. "strategy · definitions · policies …" - only the top three input layers of the Sec.09 architecture visual use this. */
   detail?: string;
-  /** Connector rendered BELOW this layer - "+" for the input layers that combine, "down" for the sequential flow, omitted on the last layer. */
   joiner?: "+" | "down";
 }
 
 export interface CapabilityCard {
   title: string;
   copy: string;
-  /** Optional secondary clarifying line, e.g. the privacy-safe-portfolio caveat or the human-approval caveat - rendered smaller/muted, distinct from the main copy. */
   note?: string;
   footerLabel: string;
   footerValue: string;

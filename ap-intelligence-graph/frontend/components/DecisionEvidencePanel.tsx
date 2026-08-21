@@ -18,15 +18,6 @@ function fmtRoas(v: number | null): string {
   return `${v.toFixed(2)}x`;
 }
 
-/**
- * Renders backend/app/schemas.py::DecisionEvidence, built deterministically
- * in app/memory/retrieval.py from actual retrieved DB rows - not parsed from
- * `evidence_brief` prose and not produced by the LLM. Five sub-blocks, in the
- * order the panel should be read: what's observed, what AP currently
- * believes, what's uncertain, what portfolio experience (clearly synthetic)
- * is informing the recommendation - rendered inside the single "Decision
- * Evidence" surface owned by RecommendationCard (design_handoff v2 Sec.3).
- */
 export function DecisionEvidencePanel({ evidence }: { evidence: DecisionEvidence }) {
   const { commercial_ask, prior_performance, measurement_cautions, client_memory, portfolio_evidence } = evidence;
 

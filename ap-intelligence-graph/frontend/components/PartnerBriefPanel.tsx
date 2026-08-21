@@ -22,9 +22,6 @@ function Block({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-/** A clickable evidence row - reuses ChatPanel's existing onHighlight graph
- * mechanism (spec Phase 3 Sec.8: "reuse the current graph selection/
- * highlight mechanisms," not a new one) rather than only being static text. */
 function EvidenceRow({ nodeId, onHighlight, children }: { nodeId: string; onHighlight?: (ids: string[]) => void; children: React.ReactNode }) {
   return (
     <div
@@ -41,15 +38,6 @@ function SourceTag({ children, color }: { children: React.ReactNode; color: stri
   return <span style={{ fontSize: 10.5, letterSpacing: "0.06em", color, fontFamily: FONT_MONO }}>{children}</span>;
 }
 
-/**
- * Renders backend/app/schemas.py::PartnerBriefEvidence (deterministic,
- * app/memory/retrieval.py::build_partner_brief_context) plus the bounded
- * brief agent's own prose. Three visually distinct provenance tiers, never
- * blended into one undifferentiated list (spec Phase 3 Sec.13):
- * STRUCTURED SOURCE DATA (campaign records, partner metadata) vs GOVERNED
- * MEMORY (approved MemoryClaims) vs MODEL SYNTHESIS (this component's
- * prose props, rendered by the caller after RELEVANT GOVERNED MEMORY).
- */
 export function PartnerBriefPanel({
   evidence,
   onHighlight,

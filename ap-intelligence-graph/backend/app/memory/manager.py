@@ -1,13 +1,3 @@
-"""Orchestrates the memory write pipeline (spec Sec.10):
-
-conversation -> extraction agent -> candidate claims -> schema validation
--> conflict lookup -> operation decision -> (human approval where required)
--> canonical store -> graph refresh
-
-This module owns that orchestration; app/memory/operations.py owns the
-actual state transitions.
-"""
-
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
@@ -40,17 +30,6 @@ def _propose_candidate_from_raw(
     db: Session, raw: dict, *, client_id: str, client_name: str,
     source_type: str, origin: str, source_message: str | None, origin_detail: dict,
 ) -> MemoryCandidate | None:
-    """Shared per-claim pipeline: schema validation -> alias normalization
-    -> deterministic conflict lookup -> pending MemoryCandidate row. Used by
-    both propose_candidates_from_message (chat extraction) and
-    propose_candidates_from_campaign_review (Phase 2) - one place owns
-    "how a raw proposed claim becomes a reviewable candidate," regardless of
-    which agent proposed it (spec Sec.18: never silently persisted, and the
-    LLM never writes canonical memory directly - see approve_candidate)."""
-    # 1. Schema validation - a malformed or out-of-range proposed claim
-    # (missing field, confidence outside [0,1], unrecognized claim_class,
-    # blank predicate/value) is dropped here and never reaches the
-    # candidate table, rather than crashing or silently persisting junk.
     try:
         validated = ExtractedClaimIn(**raw)
     except ValidationError as e:
@@ -67,17 +46,8 @@ def _propose_candidate_from_raw(
         payload["subject_id"] = client_id
     if not payload["subject_label"]:
         payload["subject_label"] = client_name if payload["subject_type"] == "client" else payload["subject_id"]
-    # Set here (not by the agent) so the review card can show provenance
-    # before approval, not just after (spec Sec.18) - this is also the
-    # value execute_create/execute_supersede will use as source.type if
-    # approved, via _source_for_candidate below.
     payload["source_type"] = source_type
 
-    # 2. Deterministic alias normalization - rewrites a semantically
-    # equivalent predicate spelling (e.g. "client_strategy") to the
-    # canonical name ("partnership_strategy") *before* conflict lookup,
-    # so a differently-worded restatement of an existing belief still
-    # collides with it instead of silently missing the conflict.
     normalized_predicate, is_known = normalize_predicate(payload["predicate"])
     payload["predicate"] = normalized_predicate
 
@@ -91,12 +61,6 @@ def _propose_candidate_from_raw(
         )
         operation = decide_operation(payload, existing)
     else:
-        # 3. Genuinely unknown predicate: do NOT guess which existing
-        # belief (if any) this might contradict, and do NOT silently
-        # treat it as a normal CREATE. Flag it for explicit human
-        # review - it still requires the same manual approval every
-        # candidate does, but is visibly distinguished (in the API/DB)
-        # as an unrecognized concept rather than a matched-vocabulary one.
         existing = None
         operation = "REQUEST_HUMAN_REVIEW"
 
@@ -115,11 +79,6 @@ def _propose_candidate_from_raw(
 
 
 def propose_candidates_from_message(db: Session, *, client_id: str, message: str) -> tuple[list[MemoryCandidate], str]:
-    """Runs the extraction agent, validates + normalizes each candidate,
-    deterministically checks it against existing active memory, and
-    persists surviving candidates as pending MemoryCandidate rows
-    (spec Sec.18 - never silently persisted, and the LLM never writes
-    canonical memory directly - see approve_candidate)."""
     client = db.get(Client, client_id)
     client_name = client.name if client else client_id
 
@@ -129,12 +88,6 @@ def propose_candidates_from_message(db: Session, *, client_id: str, message: str
         c.predicate for c in
         db.query(MemoryClaim).filter(MemoryClaim.client_id == client_id, MemoryClaim.status == "active").all()
     })
-    # Partners this client has actually run campaigns with (same join chat.py
-    # uses to resolve a partner mention) - given to the extraction agent so
-    # a relationship_status/negotiation_history claim about a named partner
-    # resolves to that partner's real id instead of subject_type defaulting
-    # to "client" or a fabricated slug (spec follow-up: subject_type
-    # resolution accuracy).
     known_partners = [
         {"id": p.id, "name": p.name, "kind": p.kind}
         for p in (
@@ -164,14 +117,6 @@ def propose_candidates_from_message(db: Session, *, client_id: str, message: str
 def propose_candidates_from_campaign_review(
     db: Session, *, client_id: str, client_name: str, campaign_id: str, campaign_label: str, raw_lessons: list[dict],
 ) -> list[MemoryCandidate]:
-    """Same governed candidate pipeline as propose_candidates_from_message,
-    fed by the campaign review agent's candidate_lessons instead of the chat
-    extractor's claims (spec Phase 2: "Candidate lessons must reuse the
-    existing governed memory-candidate pipeline"). Every lesson still passes
-    through ExtractedClaimIn validation, alias normalization, and
-    deterministic conflict lookup - a lesson naming an unrecognized
-    predicate still routes to REQUEST_HUMAN_REVIEW, exactly like an
-    unrecognized chat-extracted claim would."""
     candidates: list[MemoryCandidate] = []
     for raw in raw_lessons:
         candidate = _propose_candidate_from_raw(
@@ -188,13 +133,6 @@ def propose_candidates_from_campaign_review(
 
 
 def run_campaign_review(db: Session, *, campaign_id: str) -> schemas.CampaignReviewResponse | None:
-    """Orchestrates Phase 2's full pipeline for one campaign: deterministic
-    evidence (app.memory.retrieval) -> bounded LLM call
-    (app.agents.campaign_review_agent) -> candidate_lessons routed through
-    the governed candidate pipeline above -> serialized response. Called by
-    both routers/campaign_review.py (the "Review campaign" button) and
-    routers/chat.py (the bounded chat intent) so the two entry points can
-    never drift apart. Returns None if the campaign doesn't exist."""
     ctx = build_campaign_review_context(db, campaign_id=campaign_id)
     if ctx is None:
         return None
@@ -225,14 +163,6 @@ def run_campaign_review(db: Session, *, campaign_id: str) -> schemas.CampaignRev
 
 
 def run_partner_brief(db: Session, *, partner_id: str, client_id: str) -> schemas.PartnerBriefResponse | None:
-    """Orchestrates Phase 3's pipeline for one partner: deterministic
-    evidence (app.memory.retrieval.build_partner_brief_context) -> bounded
-    LLM call (app.agents.partner_brief_agent) -> serialized response.
-    Read-only - unlike run_campaign_review, this never writes anything to
-    the database (spec Phase 3: "No new memory from Partner Brief yet").
-    Called by both routers/partner_brief.py (the "Generate partner brief"
-    button) and routers/chat.py (the bounded chat intent). Returns None if
-    the partner doesn't exist."""
     ctx = build_partner_brief_context(db, partner_id=partner_id, client_id=client_id)
     if ctx is None:
         return None
@@ -251,14 +181,6 @@ def run_partner_brief(db: Session, *, partner_id: str, client_id: str) -> schema
 def run_memory_history(
     db: Session, *, subject_type: str, subject_id: str, predicate: str, client_id: str | None = None,
 ) -> schemas.MemoryHistoryResponse | None:
-    """Orchestrates Phase 4's pipeline for one (subject, predicate):
-    deterministic timeline (app.memory.retrieval.build_memory_history) ->
-    optional bounded LLM narration (app.agents.memory_history_agent) ->
-    serialized response. Strictly read-only (spec Phase 4 Sec.23) - no
-    MemoryCandidate, MemoryClaim, Decision, or portfolio-evidence write
-    ever happens here, unlike run_campaign_review. Called by both
-    routers/memory_history.py and routers/chat.py's bounded historical
-    intent. Returns None if no claim at all exists for this concept."""
     result = build_memory_history(db, subject_type=subject_type, subject_id=subject_id, predicate=predicate, client_id=client_id)
     if result is None:
         return None
@@ -282,14 +204,6 @@ def run_memory_history(
 
 
 def run_what_changed_summary(db: Session, *, subject_type: str, subject_id: str, client_id: str | None = None) -> schemas.WhatChangedSummary:
-    """Broader 'what changed?' view (spec Phase 4 Sec.10): deterministically
-    finds every predicate for this subject with genuine version history
-    and reports only the oldest-vs-newest-active value pair for each -
-    never a fabricated 'change' from two unrelated claims. Purely
-    deterministic; no LLM call (nothing here requires narration beyond the
-    plain old->new pairs, and keeping this deterministic-only avoids a
-    second narrative layer with its own hallucination surface for a
-    summary that's already just a values diff)."""
     changed = find_changed_predicates(db, subject_type=subject_type, subject_id=subject_id, client_id=client_id)
     subject_name = _resolve_subject_name(db, subject_type, subject_id)
     dimensions = [
@@ -308,16 +222,6 @@ def run_what_changed_summary(db: Session, *, subject_type: str, subject_id: str,
 def run_scenario_comparison(
     db: Session, *, client_id: str, partner_id: str, current_ask: float,
 ) -> schemas.ScenarioComparisonResponse | None:
-    """Orchestrates Phase 5's pipeline for one partner: deterministic
-    scenario construction + assessment (app.memory.retrieval.
-    build_scenario_comparison_context, which itself calls
-    app.memory.scenario_rules) -> bounded LLM narration/choice
-    (app.agents.scenario_comparison_agent) -> serialized response.
-    Strictly read-only (spec Phase 5 Sec.20) - no MemoryClaim,
-    MemoryCandidate, Decision, Outcome, or PortfolioPattern write ever
-    happens here. Called by both routers/scenario_comparison.py (the
-    "Compare scenarios" button) and routers/chat.py's bounded intent.
-    Returns None if the partner doesn't exist."""
     ctx = build_scenario_comparison_context(db, partner_id=partner_id, client_id=client_id, current_ask=current_ask)
     if ctx is None:
         return None
@@ -353,13 +257,9 @@ def _source_for_candidate(candidate: MemoryCandidate) -> dict:
 
 
 def approve_candidate(db: Session, candidate: MemoryCandidate) -> dict:
-    """Returns a dict with keys: operation_executed, claim, superseded_claim,
-    requires_conflict_resolution, conflict_with_claim."""
     source = _source_for_candidate(candidate)
 
     if candidate.proposed_operation == "SUPERSEDE":
-        # Do not auto-execute a supersede on review approval - surface the
-        # conflict dialog first (spec Sec.19 Scene 3 is a distinct step).
         candidate.status = "approved"
         db.flush()
         conflicting = db.get(MemoryClaim, candidate.conflict_with_claim_id) if candidate.conflict_with_claim_id else None
@@ -384,12 +284,6 @@ def approve_candidate(db: Session, candidate: MemoryCandidate) -> dict:
         db.flush()
         return {"operation_executed": "UPDATE", "claim": claim, "superseded_claim": None, "requires_conflict_resolution": False, "conflict_with_claim": None}
 
-    # CREATE, and also REQUEST_HUMAN_REVIEW (an unrecognized-predicate
-    # candidate from propose_candidates_from_message): both execute as a
-    # plain create once a human has explicitly clicked Approve here - that
-    # click *is* the human review the label promises. The distinction only
-    # matters pre-approval, where REQUEST_HUMAN_REVIEW candidates skip
-    # automatic conflict matching against the canonical vocabulary.
     claim = execute_create(db, candidate.claim_payload, client_id=candidate.client_id, source=source)
     candidate.status = "approved"
     db.flush()
@@ -423,9 +317,6 @@ def resolve_conflict(db: Session, candidate: MemoryCandidate, operation: str) ->
     return {"new_claim": new_claim, "superseded_claim": old_claim}
 
 
-# ---- account planning (Phase 6) ----
-
-
 def _planned_action_to_out(db: Session, a: PlannedAction) -> schemas.PlannedActionOut:
     partner = db.get(Partner, a.partner_id) if a.partner_id else None
     owner = db.get(TeamMember, a.owner_id) if a.owner_id else None
@@ -454,14 +345,6 @@ def propose_plan(
     db: Session, *, client_id: str, partner_ids: list[str] | None = None,
     planning_period: str | None = None, scenario_inputs: list[schemas.ScenarioComparisonRef] | None = None,
 ) -> schemas.PlanProposalResponse | None:
-    """Orchestrates Phase 6's proposal step: deterministic PlanningContext
-    (app.memory.retrieval.build_planning_context) -> bounded LLM proposal,
-    already sanitized against real ids (app.agents.plan_agent) -> serialized
-    response. Strictly read-only (spec Sec.14 step 1 - "may remain
-    frontend/API response state only") - no Plan or PlannedAction row is
-    ever created here, regardless of how confident the proposal is. Called
-    by both routers/plans.py (the "Build plan" button) and routers/chat.py's
-    bounded intent. Returns None if the client doesn't exist."""
     context = build_planning_context(
         db, client_id=client_id, partner_ids=partner_ids, planning_period=planning_period, scenario_inputs=scenario_inputs,
     )
@@ -479,20 +362,6 @@ def propose_plan(
 
 
 def create_plan(db: Session, req: schemas.PlanCreateRequest) -> schemas.PlanCreateResponse | None:
-    """Persists a Plan and its approved PlannedActions - the ONLY place in
-    the app that writes either table (spec Sec.14 step 3). Every action in
-    `req.actions` is, by construction, one the human has already approved
-    (the frontend only ever builds this request from ProposedPlannedActions
-    the user clicked Approve on - see PlanProposalPanel.tsx) - so every
-    PlannedAction created here starts at status "approved" directly, never
-    "proposed" (spec Sec.8/29). Re-applies the duplicate-open-action guard
-    one more time here, deterministically and independent of whatever the
-    proposal step already filtered (spec Sec.31: "Do not silently create
-    duplicates") - both against already-persisted open actions and against
-    other actions in this same request, since two proposed actions for the
-    same partner+action_type could otherwise both slip through the
-    proposal-time check if constructed by hand via the API. Returns None if
-    the client doesn't exist."""
     client = db.get(Client, req.client_id)
     if client is None:
         return None
@@ -521,12 +390,6 @@ def create_plan(db: Session, req: schemas.PlanCreateRequest) -> schemas.PlanCrea
             continue
         seen_in_request.add(key)
 
-        # Defense in depth: an owner/partner/campaign id that doesn't
-        # resolve to a real row is dropped rather than persisted as a
-        # dangling reference - the frontend only ever offers real ids from
-        # the graph, but the API itself must not trust a caller blindly
-        # (same "the application owns the ids" principle as
-        # planning_rules.sanitize_proposed_action).
         owner_id = a.owner_id if a.owner_id and db.get(TeamMember, a.owner_id) else None
         partner_id = a.partner_id if a.partner_id and db.get(Partner, a.partner_id) else None
         campaign_id = a.campaign_id if a.campaign_id and db.get(Campaign, a.campaign_id) else None
@@ -576,10 +439,6 @@ def update_plan(db: Session, plan_id: str, req: schemas.PlanUpdate) -> schemas.P
 
 
 def update_planned_action(db: Session, action_id: str, req: schemas.PlannedActionUpdate) -> schemas.PlannedActionOut | None:
-    """Manual post-approval editing (spec Sec.19/20/38): status/owner/
-    due_date/summary only - never evidence fields (supporting_memory_ids,
-    supporting_campaign_ids, source_scenario_id, rationale are immutable
-    here by construction, since PlannedActionUpdate doesn't expose them)."""
     action = db.get(PlannedAction, action_id)
     if action is None:
         return None

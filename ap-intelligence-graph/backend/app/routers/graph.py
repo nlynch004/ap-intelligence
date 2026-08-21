@@ -37,10 +37,6 @@ def _resolve_node(db: Session, node_type: str, raw_id: str) -> schemas.GraphNode
             return None
         partner = db.get(models.Partner, obj.partner_id)
         partner_name = partner.name if partner else obj.partner_id
-        # Two-line label ("Summit Sisters" / "May 2026 Campaign") - a bare
-        # "2026-05 campaign" is indistinguishable between two creators who
-        # both ran a campaign that month (spec Sec.6, Step 4 audit finding).
-        # Frontend renders the "\n" as a line break (whitespace-pre-line).
         return schemas.GraphNode(
             id=node_key(node_type, raw_id), node_type="campaign",
             label=f"{partner_name}\n{format_month(obj.month)} Campaign",

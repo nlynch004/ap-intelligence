@@ -49,7 +49,7 @@ function findClaimByRawId(graph: GraphResponse | null | undefined, id: unknown):
 
 function WhatChangedButton({ node, onWhatChanged }: { node: GraphNodeData; onWhatChanged?: (subjectType: string, subjectId: string) => void }) {
   if (!onWhatChanged) return null;
-  const subjectType = node.node_type === "client" ? "client" : node.node_type; // creator | publisher already match subject_type
+  const subjectType = node.node_type === "client" ? "client" : node.node_type;
   return (
     <button
       onClick={() => onWhatChanged(subjectType, rawId(node))}
@@ -132,10 +132,6 @@ function ClientSections({
   );
 }
 
-/** Client-level "Build plan" entry point (spec Phase 6 Sec.15: "Prefer
- * client-level entry because a Plan spans multiple partners"). Collapsed
- * behind a button, same pattern as CompareScenariosControl below, revealing
- * an optional planning-period field ("Q4", left blank for "next"). */
 function BuildPlanControl({ onBuildPlan, busy }: { onBuildPlan?: (planningPeriod: string | undefined) => void; busy?: boolean }) {
   const [open, setOpen] = useState(false);
   const [period, setPeriod] = useState("");
@@ -368,10 +364,6 @@ function PortfolioPatternSections({ node }: { node: GraphNodeData }) {
   );
 }
 
-/** Inline "Current renewal ask [$______]" control (spec Phase 5 Sec.4: "Do
- * not invent" a renewal ask - collect it before ever calling the endpoint,
- * rather than parsing free text or guessing). Collapsed to a single button
- * until clicked, then reveals the input. */
 function CompareScenariosControl({ partnerId, onCompareScenarios, busy }: { partnerId: string; onCompareScenarios?: (partnerId: string, currentAsk: number) => void; busy?: boolean }) {
   const [open, setOpen] = useState(false);
   const [ask, setAsk] = useState("");
@@ -627,27 +619,16 @@ export function MemoryInspector({
 }: {
   node: GraphNodeData | null;
   graph?: GraphResponse | null;
-  /** Wired to ChatPanel via LiveDemoView - see reviewCampaignRequest there. */
   onReviewCampaign?: (campaignId: string) => void;
   campaignReviewBusy?: boolean;
-  /** Wired to ChatPanel via LiveDemoView - see partnerBriefRequest there. */
   onGeneratePartnerBrief?: (partnerId: string) => void;
   partnerBriefBusy?: boolean;
-  /** Wired to ChatPanel via LiveDemoView - see memoryHistoryRequest there
-   * ("View history" on a MemoryClaim node, Phase 4). */
   onViewHistory?: (subjectType: string, subjectId: string, predicate: string) => void;
-  /** Wired to ChatPanel via LiveDemoView - see whatChangedRequest there
-   * ("What changed?" on a Client/Partner node, Phase 4). */
   onWhatChanged?: (subjectType: string, subjectId: string) => void;
-  /** Wired to ChatPanel via LiveDemoView - see scenarioComparisonRequest
-   * there ("Compare scenarios" on a Partner node, Phase 5). */
   onCompareScenarios?: (partnerId: string, currentAsk: number) => void;
   scenarioComparisonBusy?: boolean;
-  /** Wired to ChatPanel via LiveDemoView - see planBuildRequest there
-   * ("Build plan" on the Client node, Phase 6). */
   onBuildPlan?: (planningPeriod: string | undefined) => void;
   planBuildBusy?: boolean;
-  /** Direct PATCH, no chat round-trip needed - the action id is already known. */
   onUpdatePlannedAction?: (actionId: string, patch: { status?: string; owner_id?: string | null; due_date?: string | null }) => void;
   plannedActionUpdateBusy?: boolean;
 }) {
@@ -660,10 +641,6 @@ export function MemoryInspector({
   }
 
   const desc = describeNode(node, graph);
-  // Same family color the graph node itself uses for its type label/focus
-  // ring, carried into the inspector so a node and its Context pane read as
-  // the same object at a glance (spec follow-up: node-type color now maps
-  // 1:1 into this pane, not just the graph canvas).
   const familyColor = FAMILIES[desc.family].text;
 
   return (

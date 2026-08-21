@@ -9,19 +9,11 @@ const TABS: { id: AppTab; label: string }[] = [
   { id: "guide", label: "Discussion Guide" },
 ];
 
-/**
- * Restrained top-level segmented control between the live demo and the
- * post-demo Discussion Guide. Purely a view toggle - app/page.tsx keeps both
- * views mounted at all times and switches which one is painted, so this
- * component never causes the demo to reset (see app/page.tsx).
- */
 export function TabBar({
   active, onChange, onLogout,
 }: {
   active: AppTab;
   onChange: (tab: AppTab) => void;
-  /** Omitted entirely (no button rendered) when login isn't configured for
-   * this deployment - see app/page.tsx. */
   onLogout?: () => void;
 }) {
   return (

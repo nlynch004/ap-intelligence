@@ -14,15 +14,9 @@ function fmtRoas(v: number | null): string {
 
 const GOOD = ACCENT.green;
 const OK = ACCENT.amber;
-const BAD = "#c9707a"; // muted rose/red, distinct from the amber caution tone used elsewhere
+const BAD = "#c9707a";
 const NEUTRAL = TEXT.faint;
 
-// "high"/"low" mean opposite things depending on the dimension - high
-// relationship_continuity is good, but high measurement_exposure is bad.
-// Keying the color purely off the string value (as an earlier version of
-// this component did) colored both the same green, which is backwards for
-// exposure. Each dimension gets its own explicit value->color mapping
-// instead of one shared table.
 const RATING_COLORS: Record<string, Record<string, string>> = {
   strategy_alignment: { strong: GOOD, moderate: OK, weak: BAD, unknown: NEUTRAL },
   measurement_alignment: { strong: GOOD, moderate: OK, weak: BAD, unknown: NEUTRAL },
@@ -79,14 +73,6 @@ function ScenarioCard({ item, isPreferred }: { item: ScenarioWithAssessment; isP
   );
 }
 
-/**
- * Renders backend/app/schemas.py::ScenarioComparisonEvidence (deterministic,
- * app/memory/scenario_rules.py + retrieval.py::build_scenario_comparison_context)
- * plus the bounded comparison agent's own prose. The three scenario cards
- * are tagged APPLICATION ASSESSMENT; the summary/tradeoffs/uncertainties/
- * questions below are tagged MODEL SYNTHESIS - kept visually distinct per
- * spec Phase 5 Sec.13 ("That separation is essential").
- */
 export function ScenarioComparisonPanel({
   evidence,
   preferredScenarioId,
@@ -107,10 +93,6 @@ export function ScenarioComparisonPanel({
   questionsBeforeFinalizing: string[];
   confidence: number;
   onHighlight?: (ids: string[]) => void;
-  /** Phase 6 Sec.16: carries this already-generated comparison into the
-   * planning draft (frontend-only state) - does NOT persist a
-   * PlannedAction. The model-preferred scenario becomes a planning
-   * recommendation, not an approved decision (spec Sec.35). */
   onUseInPlan?: () => void;
   usedInPlan?: boolean;
 }) {

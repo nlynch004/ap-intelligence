@@ -75,9 +75,6 @@ function LoginForm() {
   );
 }
 
-// useSearchParams requires a Suspense boundary (Next.js App Router
-// convention) - this page has no server-rendered content worth
-// deferring, so the fallback is never visibly shown in practice.
 export default function LoginPage() {
   return (
     <Suspense fallback={null}>

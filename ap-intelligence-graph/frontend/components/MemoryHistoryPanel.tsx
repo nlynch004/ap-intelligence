@@ -67,15 +67,6 @@ function HistoryEntryRow({ entry, onHighlight }: { entry: MemoryHistoryEntry; on
 
 const SURFACE_BORDER = "#151b26";
 
-/**
- * "What Changed" - a compact, business-readable history of one governed
- * belief (spec Phase 4 Sec.13-14). The structured timeline
- * (backend/app/schemas.py::MemoryHistoryTimeline) is rendered in full;
- * the LLM's narrative fields are shown separately below, tagged MODEL
- * SYNTHESIS, never blended into the timeline itself. Each entry is
- * clickable and reuses the existing graph highlight mechanism - no new
- * timeline-specific graph node is created (spec Sec.15).
- */
 export function MemoryHistoryPanel({ history, onHighlight }: { history: MemoryHistoryResponse; onHighlight?: (ids: string[]) => void }) {
   const { timeline } = history;
   const hasChange = timeline.changes.length > 1;
@@ -121,8 +112,6 @@ export function MemoryHistoryPanel({ history, onHighlight }: { history: MemoryHi
   );
 }
 
-/** Broader "what changed for this subject?" view (spec Sec.10) - purely
- * deterministic, no LLM narration (see manager.py::run_what_changed_summary). */
 export function WhatChangedPanel({ summary, onHighlight }: { summary: WhatChangedSummary; onHighlight?: (ids: string[]) => void }) {
   return (
     <>

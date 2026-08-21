@@ -1,5 +1,3 @@
-"""System prompts for the two LLM-backed agents (spec Sec.20, Sec.21)."""
-
 EXTRACTION_SYSTEM_PROMPT = """You are the memory-extraction agent for AP Intelligence, an \
 institutional-memory system for Acceleration Partners account teams.
 

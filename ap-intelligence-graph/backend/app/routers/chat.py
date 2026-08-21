@@ -90,8 +90,7 @@ def _matched_campaign(db: Session, client_id: str, partner: models.Partner, text
         for c in campaigns:
             if c.month == month:
                 return c
-        return None  # a month was named but doesn't match any of this partner's campaigns - don't guess
-    # No month named: unambiguous only if this partner has exactly one campaign.
+        return None
     return campaigns[0] if len(campaigns) == 1 else None
 
 
@@ -104,16 +103,12 @@ def chat(req: schemas.ChatRequest, db: Session = Depends(get_db)):
     text = req.message.strip()
     lowered = text.lower()
 
-    # Scene 1: retrieval-only "bring me up to speed" query.
     if any(kw in lowered for kw in _UP_TO_SPEED_KEYWORDS):
         active = active_client_memories(db, req.client_id)
         claim_dicts = [{"predicate": c.predicate, "value": c.value} for c in active]
         summary, _provider = call_with_fallback("summarize", client.name, claim_dicts)
         return schemas.ChatResponse(reply=summary, candidates=[], referenced_memory_ids=[c.id for c in active])
 
-    # Phase 6: a bounded account-planning intent ("Build Northwind's next
-    # creator plan.", "Build Northwind's Q4 creator plan.") - client-level,
-    # not partner-specific, so this is checked before partner matching.
     if _looks_like_plan_request(text):
         planning_period = extract_planning_period(text)
         proposal = propose_plan(db, client_id=req.client_id, planning_period=planning_period)
@@ -126,13 +121,6 @@ def chat(req: schemas.ChatRequest, db: Session = Depends(get_db)):
 
     partner = _matched_partner(db, req.client_id, text)
 
-    # Phase 5: a bounded scenario-comparison intent ("Compare renewal
-    # options for Summit Sisters.", "Compare accepting Summit Sisters'
-    # $6,000 fee, using a hybrid structure, or not renewing."). Checked
-    # first among the specific intents - "compare"/"scenario" phrasing
-    # doesn't overlap with campaign-review/historical/partner-brief/
-    # decision-question keywords, but "renewal options" does contain
-    # "renew", which the decision-question heuristic would otherwise claim.
     if partner and _looks_like_scenario_comparison_question(text):
         ask = extract_dollar_amount(text)
         if ask is None:
@@ -148,11 +136,6 @@ def chat(req: schemas.ChatRequest, db: Session = Depends(get_db)):
                 candidates=[], referenced_memory_ids=[], scenario_comparison=comparison,
             )
 
-    # Phase 2: a bounded campaign-review intent ("Review Summit Sisters'
-    # May 2026 campaign."). Checked before the decision-question branch
-    # below since it's the more specific intent - a message naming both a
-    # partner and "review"/"campaign" is a review request, not a renewal
-    # ask, even if it also happens to satisfy the decision-question heuristic.
     if partner and _looks_like_campaign_review_question(text):
         campaign = _matched_campaign(db, req.client_id, partner, text)
         if campaign:
@@ -162,15 +145,7 @@ def chat(req: schemas.ChatRequest, db: Session = Depends(get_db)):
                     reply=f"Campaign review — {review.evidence.partner_name}, {review.evidence.month_label}: {review.summary}",
                     candidates=[], referenced_memory_ids=[], campaign_review=review,
                 )
-        # Named a partner + "review"/"campaign" but couldn't resolve exactly
-        # which campaign (ambiguous or unmatched month) - fall through to
-        # extraction rather than guess which campaign was meant.
 
-    # Phase 4: a bounded historical / "what changed?" intent ("How has
-    # Northwind's partnership strategy changed?", "What changed with
-    # Northwind?", "How has our view of Summit Sisters changed?"). Checked
-    # after campaign review (which already claims "how did/has ...
-    # campaign" phrasing) and before partner-brief/decision-question.
     if _looks_like_historical_question(text):
         subject_type = partner.kind if partner else "client"
         subject_id = partner.id if partner else req.client_id
@@ -188,12 +163,6 @@ def chat(req: schemas.ChatRequest, db: Session = Depends(get_db)):
                 reply = f"{history.timeline.subject.name}'s {predicate_label}: {history.summary}"
             return schemas.ChatResponse(reply=reply, candidates=[], referenced_memory_ids=[], memory_history=history)
 
-        # No specific predicate named ("What changed with Northwind?",
-        # "How has our view of Summit Sisters changed?") - deterministically
-        # enumerate every predicate for this subject with real version
-        # history rather than guessing which one the user meant (spec Sec.9:
-        # "Do not use fuzzy semantic coercion... it is acceptable to return
-        # a broader structured summary").
         summary = run_what_changed_summary(db, subject_type=subject_type, subject_id=subject_id, client_id=req.client_id)
         if summary.changed_dimensions:
             reply = f"{len(summary.changed_dimensions)} governed belief(s) changed for {summary.subject.name}."
@@ -201,10 +170,6 @@ def chat(req: schemas.ChatRequest, db: Session = Depends(get_db)):
             reply = f"No governed change history exists for {summary.subject.name} yet."
         return schemas.ChatResponse(reply=reply, candidates=[], referenced_memory_ids=[], what_changed=summary)
 
-    # Phase 3: a bounded partner-brief intent ("What should I know before I
-    # speak with Summit Sisters?", "Give me a partner brief for Peak
-    # Pursuit."). Checked before the decision-question branch for the same
-    # reason as campaign review above - it's the more specific intent.
     if partner and _looks_like_partner_brief_question(text):
         brief = run_partner_brief(db, partner_id=partner.id, client_id=req.client_id)
         if brief:
@@ -213,7 +178,6 @@ def chat(req: schemas.ChatRequest, db: Session = Depends(get_db)):
                 candidates=[], referenced_memory_ids=[], partner_brief=brief,
             )
 
-    # Scene 4: a consequential business question about a specific partner.
     if partner and _looks_like_decision_question(text):
         ctx = build_recommendation_context(db, client_id=req.client_id, partner_id=partner.id, question=text)
         raw_rec, _provider = generate_recommendation(text, ctx["evidence_brief"], ctx["structured_context"])
@@ -232,7 +196,6 @@ def chat(req: schemas.ChatRequest, db: Session = Depends(get_db)):
         reply = f"Recommendation: {raw_rec['recommendation'].replace('_', ' ')}. {raw_rec.get('explanation', '')}"
         return schemas.ChatResponse(reply=reply, candidates=[], referenced_memory_ids=ctx["supporting_memory_ids"], recommendation=rec)
 
-    # Scene 2: natural-language memory extraction.
     candidates, _provider = propose_candidates_from_message(db, client_id=req.client_id, message=text)
     db.commit()
 

@@ -27,12 +27,6 @@ import type {
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-// Reads the same cookie /login sets (see app/api/login/route.ts) so the
-// deployed backend - a separate origin from the Vercel-hosted frontend -
-// can independently verify the caller, rather than trusting that anyone
-// who reached this JS already passed the frontend's own login gate (see
-// backend/app/main.py::require_admin_password). Empty string locally,
-// where ADMIN_PASSWORD is never set - the backend no-ops in that case too.
 function adminToken(): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(/(?:^|; )ap_admin_token=([^;]*)/);
@@ -147,6 +141,5 @@ export const api = {
   simulateOutcome: (decisionId: string) =>
     request<SimulateOutcomeResponse>(`/api/decisions/${decisionId}/simulate-outcome`, { method: "POST" }),
 
-  // Demo-only - see backend/app/routers/demo.py.
   resetDemo: () => request<DemoResetResponse>("/api/demo/reset", { method: "POST" }),
 };

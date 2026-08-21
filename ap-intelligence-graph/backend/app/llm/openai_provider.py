@@ -1,11 +1,3 @@
-"""Real LLM provider backed by the OpenAI API.
-
-Falls back defensively: if a call errors (bad key, rate limit, network),
-callers should catch and use MockProvider instead - see factory.py's
-`get_provider_with_fallback` used by the agents at call time, not just once
-at startup, so a mid-demo API hiccup degrades gracefully instead of crashing.
-"""
-
 import json
 from typing import Any
 

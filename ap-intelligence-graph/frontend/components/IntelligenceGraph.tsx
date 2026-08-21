@@ -6,47 +6,19 @@ import { describeNode, edgeStyle } from "@/lib/nodeVisuals";
 import type { GraphNodeData, GraphResponse } from "@/lib/types";
 import { ApGraphNode, NODE_ANCHOR_Y, NODE_WIDTH } from "./ApGraphNode";
 
-// Custom canvas (design_handoff v2 Sec.4): absolutely-positioned cards over
-// one SVG for edges, deliberately not react-flow - the spec's exact bezier
-// math, focus-tracing opacity states, and quiet control cluster are easier
-// to hit faithfully hand-rolled than fought into react-flow's own zoom/pan/
-// edge-rendering opinions.
 
-// Conceptual layout stages - one per narrative beat, pitch ~330px per the
-// handoff. Most node types map to a fixed stage; memory_claim is special-
-// cased by predicate (see stageIndexFor). Account-level "macro" claims (the
-// client's overall strategy/goals) and the portfolio pattern that supports
-// the client sit immediately to the LEFT of the client - the broader context
-// framing the client, rather than something downstream of it - while
-// campaign-derived granular claims (attribution hypotheses) sit to the
-// right of campaign, downstream of the numbers they were derived from.
-// Partner sits directly next to campaign (no stage between them) so a
-// creator/publisher and the campaign it ran are visually adjacent.
 const STAGE_TEAM_MEMBER = 0;
-const STAGE_LEFT_CONTEXT = 1; // portfolio pattern, strategy/goals/tradeoff/negotiation history
+const STAGE_LEFT_CONTEXT = 1;
 const STAGE_CLIENT = 2;
-const STAGE_PARTNER = 3; // creator, publisher
+const STAGE_PARTNER = 3;
 const STAGE_CAMPAIGN = 4;
-const STAGE_CAMPAIGN_CLAIM = 5; // attribution/measurement hypotheses
+const STAGE_CAMPAIGN_CLAIM = 5;
 const STAGE_DECISION = 6;
 const STAGE_OUTCOME = 7;
-// Appended after every pre-existing stage (spec Phase 6 Sec.22: "add the new
-// node types to the existing deterministic column strategy" without a
-// broader layout rewrite) - deliberately NOT interleaved among the earlier
-// stages, so no existing node's column index changes and the verified
-// six-scene layout is provably unaffected by this phase. A Plan's HAS_PLAN
-// edge (from client, stage 2) and a PlannedAction's APPLIES_TO edge (to
-// partner, stage 3) both then point back toward earlier columns, which
-// bezierPath already renders correctly (see its "direction-aware" comment).
 const STAGE_PLAN = 8;
 const STAGE_PLANNED_ACTION = 9;
 const STAGE_COUNT = 10;
 
-// Predicates characterizing the account itself, as opposed to a specific
-// campaign's numbers (backend/app/memory/predicates.py). relationship_status
-// is deliberately excluded - those claims are filtered out of the graph
-// entirely before layout ever runs (see lib/graphAugment.ts), redundant
-// with the direct client/partner "has relationship" edge.
 const ACCOUNT_LEVEL_PREDICATES = new Set(["partnership_strategy", "primary_growth_objective", "accepts_tradeoff", "negotiation_history"]);
 
 function stageIndexFor(node: GraphNodeData): number {
@@ -82,7 +54,7 @@ function stageIndexFor(node: GraphNodeData): number {
 const COL_PITCH = 330;
 const ROW_PITCH = 185;
 const SPINE_Y = 175;
-const CARD_HEIGHT_BUDGET = 220; // rough card height incl. padding/shadow, for world sizing
+const CARD_HEIGHT_BUDGET = 220;
 const WORLD_MARGIN = 60;
 
 type Pos = { x: number; y: number };
@@ -106,13 +78,6 @@ function computeLayout(graph: GraphResponse): Record<string, Pos> {
   return pos;
 }
 
-// Direction-aware: pulls each control point *away from its own card, toward
-// the other* - i.e. inward along the sx->tx line - rather than always
-// bulging rightward. For the common left-to-right case (sx < tx) this is
-// identical to the original fixed formula; for an edge whose target sits to
-// the *left* of its source (e.g. client -> a strategy claim now laid out
-// left of the client), the curve mirrors instead of looping the long way
-// around, back behind the source card, to reach a left-side anchor.
 function bezierPath(sx: number, sy: number, tx: number, ty: number): string {
   const dir = tx >= sx ? 1 : -1;
   const spread = Math.max(70, Math.abs(tx - sx) * 0.5);
@@ -134,12 +99,9 @@ const LEGEND_ITEMS: { color: string; label: string }[] = [
 
 interface IntelligenceGraphProps {
   graph: GraphResponse;
-  /** Node ids called out by the last chat turn (referenced/supporting memories). */
   highlightedIds?: string[];
   selectedId: string | null;
   onSelectNode: (nodeId: string, node: GraphNodeData) => void;
-  /** Node ids to bring into view after a mutation - memory approval,
-   * SUPERSEDE, decision creation, outcome creation. */
   focusNodeIds?: string[];
 }
 
@@ -177,9 +139,6 @@ export function IntelligenceGraph({ graph, highlightedIds = [], selectedId, onSe
   }, [focus, graph.edges]);
   const isolating = Boolean(focus);
 
-  // Node drag: mousedown on a card starts it; delta divided by zoom so the
-  // card tracks the cursor 1:1 regardless of current zoom level. Positions
-  // live only in local component state (never persisted).
   useEffect(() => {
     function onMove(e: MouseEvent) {
       const d = dragRef.current;
@@ -206,9 +165,6 @@ export function IntelligenceGraph({ graph, highlightedIds = [], selectedId, onSe
     dragRef.current = { id, startX: e.clientX, startY: e.clientY, origX: p.x, origY: p.y };
   }
 
-  // Re-frame the viewport around whatever just changed - not the whole
-  // graph, which would zoom everything progressively smaller as the graph
-  // grows over a demo. Deferred one frame so layout has settled first.
   useEffect(() => {
     if (focusNodeIds.length === 0) return;
     const el = scrollRef.current;
@@ -246,15 +202,6 @@ export function IntelligenceGraph({ graph, highlightedIds = [], selectedId, onSe
     });
   }
 
-  // First-paint framing only (not on every later graph change - a later
-  // re-frame is handled by the focusNodeIds effect above, which zooms to
-  // whatever just changed rather than the whole graph per its own comment).
-  // Needed because the layout's shared spine baseline (SPINE_Y) means a
-  // stage with many rows (e.g. campaigns, one row per seeded campaign) pulls
-  // every other stage's default scroll position away from view - at
-  // zoom=1/scroll=(0,0) the account's own context nodes can end up below
-  // the fold purely because some other stage happens to have more rows,
-  // which only gets more likely as more campaigns/plans/actions are seeded.
   const didInitialFit = useRef(false);
   useEffect(() => {
     if (didInitialFit.current || graph.nodes.length === 0) return;
@@ -305,13 +252,6 @@ export function IntelligenceGraph({ graph, highlightedIds = [], selectedId, onSe
                 if (!source || !target) return null;
                 const sp = posFor(edge.source);
                 const tp = posFor(edge.target);
-                // Anchor each end on the side actually facing the other card
-                // (source's right/target's left when the target is laid out
-                // to the right, mirrored when it's laid out to the left -
-                // e.g. an account-level claim now sitting left of the client
-                // that has a HAS_STRATEGY/HAS_GOAL/etc. edge *from* it) -
-                // never a fixed side regardless of layout, which is what
-                // sent a line behind the card instead of beside it.
                 const targetIsRight = tp.x >= sp.x;
                 const sx = targetIsRight ? sp.x + NODE_WIDTH : sp.x;
                 const sy = sp.y + NODE_ANCHOR_Y + yShift;

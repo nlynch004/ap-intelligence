@@ -2,13 +2,6 @@
 
 import { SURFACE } from "@/lib/design";
 
-/**
- * A draggable panel/pane divider. Visually a 1px line (matching the spec's
- * "Separators: 1px #151b26 ... which are also the resize handles"), but with
- * a wider invisible hit target (negative margins pull the extra thickness
- * back over the neighboring content without shifting layout) - a bare 1px
- * element is nearly impossible to grab precisely with a real mouse.
- */
 export function ResizeDivider({ direction, onMouseDown }: { direction: "row" | "col"; onMouseDown: (e: React.MouseEvent) => void }) {
   if (direction === "row") {
     return (

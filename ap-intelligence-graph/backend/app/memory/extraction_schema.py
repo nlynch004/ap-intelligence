@@ -1,14 +1,3 @@
-"""Pydantic validation for raw extraction-agent output.
-
-The LLM (or the mock provider) returns plain dicts. Before anything from
-that output is allowed to become a `MemoryCandidate` row, it must pass
-through `ExtractedClaimIn` here. This is a distinct, stricter model from
-`schemas.CandidateClaimPayload` (the API-facing shape) because it validates
-the raw, undefaulted output straight off the model call - the boundary
-where a malformed or out-of-range value must be caught, not the shape
-already-defaulted candidates take once inside the app.
-"""
-
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -45,11 +34,6 @@ class ExtractedClaimIn(BaseModel):
 
     @model_validator(mode="after")
     def _subject_id_required_unless_client(self) -> "ExtractedClaimIn":
-        # subject_type == "client" always gets its subject_id overwritten
-        # with the caller's client_id downstream (manager.py), so the model
-        # doesn't need to supply one. Every other subject_type must name a
-        # concrete subject - a blank one can't be conflict-matched or
-        # persisted meaningfully.
         if self.subject_type != "client" and not self.subject_id.strip():
             raise ValueError("subject_id is required for non-client subjects")
         return self

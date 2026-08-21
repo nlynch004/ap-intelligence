@@ -1,9 +1,3 @@
-"""Decision capture + simulated outcome loop (spec Sec.19 Scenes 5-6).
-
-Both endpoints write graph edges directly (deterministic - spec Sec.22),
-never through the LLM.
-"""
-
 import random
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -24,8 +18,6 @@ def create_decision(req: schemas.DecisionCreateRequest, db: Session = Depends(ge
     if not client or not partner:
         raise HTTPException(404, "client or partner not found")
 
-    # Optional (spec Phase 6 Sec.26) - validated rather than trusted, same
-    # "don't persist a dangling/invented id" rule the planning endpoints use.
     source_planned_action_id = req.source_planned_action_id
     if source_planned_action_id and not db.get(models.PlannedAction, source_planned_action_id):
         source_planned_action_id = None
@@ -52,9 +44,6 @@ def create_decision(req: schemas.DecisionCreateRequest, db: Session = Depends(ge
 
 @router.post("/{decision_id}/simulate-outcome", response_model=schemas.SimulateOutcomeResponse)
 def simulate_outcome(decision_id: str, db: Session = Depends(get_db)):
-    """DEMO-ONLY: fabricates a plausible outcome for the accepted decision so
-    the learning-loop story (decision -> outcome -> pattern evidence) can be
-    shown live without waiting on a real campaign cycle."""
     decision = db.get(models.Decision, decision_id)
     if not decision:
         raise HTTPException(404, "decision not found")

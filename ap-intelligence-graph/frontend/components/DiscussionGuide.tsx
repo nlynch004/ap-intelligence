@@ -26,13 +26,6 @@ import {
   type TwoColumn,
 } from "@/lib/discussionGuide";
 
-// Static presenter content - see lib/discussionGuide.ts. This component
-// renders it; it never fetches, never calls the backend, and never touches
-// the live demo's graph/chat state. Mounted for the app's entire lifetime
-// (app/page.tsx toggles visibility only), so its own state (which section is
-// active in the nav) is cheap to lose and cheap to keep - it just doesn't
-// matter for the "preserve demo state" requirement, which is about
-// LiveDemoView, not this component.
 
 function SectionEyebrow({ text }: { text: string }) {
   return <div style={{ fontSize: 11, letterSpacing: "0.08em", color: TEXT.faint, marginBottom: 10, textTransform: "uppercase" }}>{text}</div>;
@@ -347,11 +340,6 @@ function MeasurementBlock({ s }: { s: MeasurementSection }) {
   );
 }
 
-// ---- Sec.09 "Future-State Agentic Capabilities" - additive rendering only,
-// reuses the existing visual language (SectionShell/KeyLine/BulletList/Chain/
-// the SURFACE.raised card treatment already used throughout this file) - no
-// new design system, no diagramming dependency. See lib/discussionGuide.ts
-// for the authored content this renders.
 
 function FutureStateBadge({ text }: { text: string }) {
   return (
@@ -375,10 +363,6 @@ function FutureStateBadge({ text }: { text: string }) {
   );
 }
 
-/** Renders the Sec.09 architecture visual: three "+"-joined context/tools/
- * skills inputs flowing down into a single orchestration→…→memory chain.
- * Also reused (with `dense`) for the enterprise-stack callout, which has no
- * connectors - just stacked, full-width layer cards. */
 function FlowDiagram({ layers, dense = false }: { layers: FlowLayer[]; dense?: boolean }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0, maxWidth: dense ? 640 : 460, margin: "0 auto" }}>
@@ -594,9 +578,6 @@ export function DiscussionGuide() {
   const contentRef = useRef<HTMLDivElement>(null);
   const [activeId, setActiveId] = useState<string>(DISCUSSION_SECTIONS[0].id);
 
-  // Scrollspy: highlight whichever section is nearest the top of the
-  // content column. Registered once - the section list is static authored
-  // content, never changes at runtime.
   useEffect(() => {
     const root = contentRef.current;
     if (!root) return;

@@ -1,16 +1,3 @@
-"""Account planning API (spec Phase 6). Deliberately a small, explicit
-surface (spec Sec.28) - no generic write endpoint.
-
-POST /api/plans/propose        - read-only; returns a PlanProposalResponse,
-                                  never persists anything.
-POST /api/plans                - persists a Plan + its approved
-                                  PlannedActions (only what the human
-                                  approved reaches this endpoint).
-GET  /api/clients/{id}/plans   - list plans for a client.
-PATCH /api/plans/{id}          - plan-level status transition.
-PATCH /api/planned-actions/{id} - status/owner/due_date/summary edit.
-"""
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 

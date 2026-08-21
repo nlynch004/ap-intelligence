@@ -1,24 +1,10 @@
-// Design tokens for the dark, enterprise-grade theme (design_handoff_intelligence_graph
-// v2 - "AP Intelligence — Visual Enhancement"). Presentation-layer only.
-//
-// Colors are exact hex values from a high-fidelity spec, not part of Tailwind's
-// palette, so they're kept here as plain JS and applied via inline `style`
-// (Tailwind arbitrary-value classes built from runtime template strings don't
-// survive Tailwind's static scan anyway). Layout/spacing utilities still use
-// Tailwind classes throughout the components.
-
 export type Family = "blue" | "green" | "amber" | "purple" | "gray" | "hist" | "teal" | "rose" | "sage";
 
 export interface FamilyTokens {
-  /** edge stroke / arrowhead color */
   line: string;
-  /** focused node card background */
   node: string;
-  /** focused node card border, and edge label color paired with `text` */
   border: string;
-  /** type label / status / edge label text color */
   text: string;
-  /** focus-ring halo color (rgba) */
   glow: string;
 }
 
@@ -29,18 +15,11 @@ export const FAMILIES: Record<Family, FamilyTokens> = {
   purple: { line: "#6d61a4", node: "#14131f", border: "#272338", text: "#a599dd", glow: "rgba(143,131,201,0.2)" },
   gray: { line: "#333d4e", node: "#0c1017", border: "#181e29", text: "#8896ac", glow: "rgba(120,140,170,0.12)" },
   hist: { line: "#3a4557", node: "#0a0e14", border: "#151b25", text: "#5d6b81", glow: "rgba(120,140,170,0.08)" },
-  // Structural-entity variants (spec follow-up: creator/publisher/campaign
-  // previously all shared `gray`, making distinct node types visually
-  // indistinguishable at rest, not just once focused). Each stays in the
-  // same muted, low-saturation "structural" weight class as `gray` rather
-  // than competing with the meaningful semantic colors above - just a
-  // different whisper of hue per type.
   teal: { line: "#3f8f8a", node: "#0d1917", border: "#1b2f2b", text: "#7ecec6", glow: "rgba(79,185,175,0.2)" },
   rose: { line: "#a35a78", node: "#1a1015", border: "#301f28", text: "#d99bb5", glow: "rgba(190,110,150,0.2)" },
   sage: { line: "#7d8659", node: "#14160f", border: "#262a1c", text: "#b6c194", glow: "rgba(175,190,130,0.18)" },
 };
 
-// Accent hues for header/legend/status chrome (not tied to a graph node).
 export const ACCENT = {
   blue: "#5b9fd4",
   green: "#4fb98d",
@@ -81,19 +60,16 @@ export const TEXT = {
 
 export const FONT_MONO = "var(--font-mono-ui)";
 
-/** "reduce_coupon_dependence" -> "reduce coupon dependence" */
 export function humanize(v: string | null | undefined): string {
   if (!v) return "";
   return v.replace(/_/g, " ");
 }
 
-/** "renew_and_test" -> "Renew and test" (sentence case, matches spec headline copy) */
 export function sentenceCase(v: string | null | undefined): string {
   const h = humanize(v);
   return h ? h.charAt(0).toUpperCase() + h.slice(1) : "";
 }
 
-/** "primary_growth_objective" -> "Primary objective" (Title Case fallback for anything not listed) */
 export function titleCase(v: string | null | undefined): string {
   return humanize(v)
     .split(" ")
@@ -102,12 +78,6 @@ export function titleCase(v: string | null | undefined): string {
     .join(" ");
 }
 
-// Human-readable labels for the app's canonical predicate vocabulary
-// (backend/app/memory/predicates.py::CANONICAL_PREDICATES). Used both as a
-// graph node's "type label" (memory_claim) and as inspector/evidence row
-// labels ("Governed context"). Anything outside this table falls back to
-// titleCase(predicate) - the vocabulary is a fixed, reviewed list on the
-// backend, but the frontend must not break if it grows.
 export const PREDICATE_LABEL: Record<string, string> = {
   partnership_strategy: "Strategy",
   primary_growth_objective: "Primary objective",

@@ -4,14 +4,8 @@ import { FAMILIES, SURFACE, TEXT } from "@/lib/design";
 import type { NodeDescription } from "@/lib/nodeVisuals";
 
 export const NODE_WIDTH = 250;
-/** Vertical offset from a card's top edge to its edge-anchor midline. */
 export const NODE_ANCHOR_Y = 52;
 
-/**
- * A single absolutely-positioned node card on the graph canvas
- * (design_handoff v2 Sec.4). Purely presentational - IntelligenceGraph owns
- * position, focus/hover state, and drag/click wiring.
- */
 export function ApGraphNode({
   x,
   y,
@@ -28,10 +22,7 @@ export function ApGraphNode({
   y: number;
   desc: NodeDescription;
   isFocus: boolean;
-  /** Opacity 0.3 while another node is focused and this one isn't connected. */
   isDimmed: boolean;
-  /** Called out by the last chat turn (referenced/supporting memories) - a
-   * quiet accent ring, independent of hover/select focus tracing. */
   highlighted?: boolean;
   onEnter: () => void;
   onLeave: () => void;

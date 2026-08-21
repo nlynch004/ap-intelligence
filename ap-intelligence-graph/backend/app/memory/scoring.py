@@ -1,10 +1,3 @@
-"""Deterministic weighted retrieval scoring (spec Sec.15).
-
-No embeddings/learned ranker - a small weighted function is sufficient for
-the prototype, per spec: "The prototype does not need a sophisticated
-learned ranker. A deterministic weighted function is sufficient."
-"""
-
 import re
 from datetime import date, datetime
 
@@ -49,7 +42,7 @@ def _client_scope_match(claim: MemoryClaim, client_id: str | None) -> float:
     if claim.client_id == client_id:
         return 1.0
     if claim.client_id is None:
-        return 0.6  # privacy-safe portfolio scope: relevant but not client-specific
+        return 0.6
     return 0.0
 
 
@@ -59,7 +52,6 @@ def _recency_score(claim: MemoryClaim) -> float:
     except (ValueError, TypeError):
         return 0.5
     days_old = max((date.today() - valid_from).days, 0)
-    # full score inside 90 days, decaying to ~0.2 by 2 years
     return max(1.0 - (days_old / 730), 0.2)
 
 

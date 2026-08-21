@@ -1,6 +1,3 @@
-"""ORM -> Pydantic conversions. Centralized so datetime formatting and
-candidate-payload shaping stay consistent across routers."""
-
 from app import models, schemas
 
 

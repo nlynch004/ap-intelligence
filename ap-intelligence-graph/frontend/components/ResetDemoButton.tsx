@@ -4,18 +4,6 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { TEXT } from "@/lib/design";
 
-/**
- * Demo-only control (spec: does not represent a production pattern - see
- * backend/app/routers/demo.py). Drops and reseeds the entire dataset so the
- * live demo script can be rehearsed and re-run from a known-good state
- * without restarting either server or reloading the browser.
- *
- * Quiet header treatment (design_handoff v2 Sec.1: "Reset: 13px/#94a3ba,
- * transparent, no border") - the confirm step trades the destructive-action
- * red for a restrained amber, consistent with the rest of the theme's
- * "no warning-red, no bright yellow" restraint, while still reading as
- * distinct from routine chrome.
- */
 export function ResetDemoButton({ onReset }: { onReset: () => void }) {
   const [confirming, setConfirming] = useState(false);
   const [resetting, setResetting] = useState(false);

@@ -1,12 +1,3 @@
-"""Deterministic fallback provider - used whenever OPENAI_API_KEY is absent.
-
-This is not a stub that no-ops: it implements real (if simple) rule-based
-NLU tuned to the rehearsed demo script in spec Sec.19, so the full loop
-(Scenes 1-6) is genuinely demoable with zero API calls. Swapping in a real
-OpenAI key later changes nothing about the app's behavior contract - only
-the generality/quality of extraction and prose (see llm/factory.py).
-"""
-
 from typing import Any
 
 from app.formatting import extract_dollar_amount
@@ -24,13 +15,6 @@ class MockProvider(LLMProvider):
         known_predicates: list[str] | None = None,
         known_partners: list[dict[str, str]] | None = None,
     ) -> list[dict[str, Any]]:
-        # known_partners unused: this deterministic fallback only ever
-        # extracts the three canned client-level claims from the demo
-        # script's Step 2 message (see module docstring) - it never produces
-        # a creator/publisher-subject claim, so there's nothing to resolve
-        # a partner id for. Accepted here only to keep the same call
-        # signature as the live provider (factory.call_with_fallback calls
-        # whichever provider is active with identical args).
         text = message.lower()
         candidates: list[dict[str, Any]] = []
 
@@ -115,15 +99,6 @@ class MockProvider(LLMProvider):
         }
 
     def review_campaign(self, evidence: dict[str, Any]) -> dict[str, Any]:
-        """Deterministic rule-based campaign review, tuned to the three
-        Phase-1 planning archetypes (Peak Pursuit: strong/clean; Campfire
-        Kate: moderate/strategic-fit; Backcountry Ben: weak commerce/strong
-        content) plus Summit Sisters' attribution-caution case - not a stub,
-        the same "genuinely demoable with zero API calls" bar as the other
-        mock methods.
-
-        Metrics are read, never (re)computed - `evidence` already carries
-        attributed_roas etc. from app/memory/retrieval.py."""
         partner_id = evidence.get("partner_id", "")
         partner_name = evidence.get("partner_name") or "This partner"
         month_label = evidence.get("month_label") or "this campaign"
@@ -194,11 +169,6 @@ class MockProvider(LLMProvider):
                 "Direct-response economics are weak; if the relationship continues, it should be justified on grounds other than attributed commerce."
             )
 
-        # candidate_lessons: propose a partner-level performance
-        # characterization only when it isn't entangled with an open
-        # measurement caution on THIS campaign (Summit Sisters' May 2026
-        # attribution hypothesis must stay a hypothesis, not get laundered
-        # into a stronger-sounding governed claim - spec Phase 2 test A).
         if tier in ("strong", "weak") and not has_caution and partner_id:
             value = "consistently_strong_direct_response_economics" if tier == "strong" else "weak_direct_response_economics_despite_content_strength"
             candidate_lessons.append({
@@ -212,11 +182,6 @@ class MockProvider(LLMProvider):
                 "confidence": 0.7 if tier == "strong" else 0.6,
                 "rationale": f"Derived from the {month_label} campaign review (attributed ROAS {roas:.2f}x)." if roas is not None else f"Derived from the {month_label} campaign review.",
             })
-        # A genuinely novel concept (audience-fit, not a performance
-        # pattern) - deliberately NOT one of the canonical predicates, so it
-        # routes to REQUEST_HUMAN_REVIEW rather than being force-fit into
-        # partner_performance_pattern (spec Phase 2 test C + memory test
-        # "unknown lesson predicate goes to REQUEST_HUMAN_REVIEW").
         if partner_note and "first-time buyer" in partner_note.lower() and partner_id:
             candidate_lessons.append({
                 "type": "relationship_memory",
@@ -242,12 +207,6 @@ class MockProvider(LLMProvider):
         }
 
     def generate_partner_brief(self, evidence: dict[str, Any]) -> dict[str, Any]:
-        """Deterministic rule-based partner brief - driven entirely by
-        evidence field values (never by partner name), so it naturally
-        differs across archetypes without hardcoding any of them, and
-        naturally reflects whatever governed state actually exists right
-        now (spec: "the brief must truthfully differ depending on whether
-        that lesson has been approved in the current demo session")."""
         partner = evidence.get("partner") or {}
         name = partner.get("name") or "This partner"
         synthetic = bool(partner.get("synthetic"))
@@ -271,8 +230,6 @@ class MockProvider(LLMProvider):
         else:
             tier = "weak"
 
-        # --- relationship_summary: WORKED_WITH and negotiation_history are
-        # kept as two distinct facts, never merged into "X is the expert."
         worked_with_names = [t["name"] for t in team if t.get("worked_with")]
         documented_negotiation = [h for h in relationship_history if h.get("predicate") == "negotiation_history"]
         rel_parts = []
@@ -286,7 +243,6 @@ class MockProvider(LLMProvider):
             rel_parts.append("No documented negotiation history is on file yet.")
         relationship_summary = " ".join(rel_parts)
 
-        # --- performance_summary: reads performance_stats only, never recomputes.
         if campaign_count == 0:
             performance_summary = f"No campaign history is on file for {name} yet."
         else:
@@ -366,10 +322,6 @@ class MockProvider(LLMProvider):
         }
 
     def summarize_history(self, evidence: dict[str, Any]) -> dict[str, Any]:
-        """Deterministic rule-based history narration. Only ever describes
-        transitions and cites source info that is actually present in each
-        entry - never invents a reason (spec Phase 4: "If the reason for a
-        change is not stored, say the reason is not captured.")."""
         entries = evidence.get("entries") or []
         subject_name = evidence.get("subject_name") or "This subject"
         predicate_label = (evidence.get("predicate") or "belief").replace("_", " ")
@@ -418,12 +370,6 @@ class MockProvider(LLMProvider):
         }
 
     def compare_scenarios(self, evidence: dict[str, Any]) -> dict[str, Any]:
-        """Deterministic rule-based scenario comparison. Picks a preferred
-        option purely by ranking the application-supplied qualitative
-        ratings (never inventing new ones), and only ever names a scenario
-        id that was actually supplied - the same guarantee the validated
-        fallback in agents/scenario_comparison_agent.py enforces for the
-        live provider too."""
         items = evidence.get("scenarios") or []
         partner_name = (evidence.get("partner") or {}).get("name") or "this partner"
         cautions = evidence.get("measurement_cautions") or []
@@ -478,17 +424,6 @@ class MockProvider(LLMProvider):
         }
 
     def propose_plan(self, context: dict[str, Any]) -> dict[str, Any]:
-        """Deterministic rule-based plan proposal, driven entirely by
-        PlanningContext field values (never by partner name) - like
-        generate_partner_brief above, this naturally differs per partner
-        without hardcoding any of them. Prefers a partner's already-produced
-        scenario-comparison result when present (spec Sec.35), otherwise
-        falls back to the same performance-tier/measurement-caution reading
-        every other mock method already uses. Skips a partner entirely when
-        there isn't enough campaign evidence to ground an action (spec
-        Sec.10/18), and skips proposing a duplicate of an already-open
-        action (spec Sec.9/31) - the application enforces both rules again
-        independently, but the mock should not be a bad citizen either."""
         client = context.get("client") or {}
         client_name = client.get("client_name") or "This client"
         period = context.get("planning_period")
@@ -520,7 +455,7 @@ class MockProvider(LLMProvider):
             avg_engagement = stats.get("average_engagement_rate")
 
             if campaign_count == 0:
-                continue  # not enough evidence to ground an action for this partner
+                continue
 
             if avg_roas is None:
                 tier = "unknown"

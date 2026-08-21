@@ -1,24 +1,14 @@
-// Business-readable presentation for graph nodes/edges (design_handoff v2).
-// Distinguishes node kinds and memory status using semantic color family +
-// business-meaning type label + status glyph - never color alone. Everything
-// here is derived from real API fields (GraphNodeData.data /
-// GraphResponse.edges); nothing is hardcoded to the Northwind demo script.
-
 import type { Family } from "./design";
 import { humanize, predicateLabel, sentenceCase, titleCase } from "./design";
 import type { GraphEdgeData, GraphNodeData, GraphResponse } from "./types";
 
 export interface NodeDescription {
   family: Family;
-  /** Business-meaning label shown above the title, e.g. "Strategy", "Decision". */
   typeLabel: string;
-  /** May contain "\n" for a two-line title (campaign nodes). */
   title: string;
   detail: string | null;
-  /** Includes its glyph, e.g. "✓ Accepted", "△ Review required". */
   statusText: string | null;
   synthetic: boolean;
-  /** Historical/superseded treatment: dimmed resting opacity, muted text. */
   historical: boolean;
 }
 
@@ -275,7 +265,6 @@ export function describeNode(node: GraphNodeData, graph?: GraphResponse | null):
   }
 }
 
-// ---- edges ----
 
 export interface EdgeDescription {
   family: Family;
@@ -291,17 +280,12 @@ interface EdgeSpec {
   dashed?: boolean;
   always?: boolean;
   animated?: boolean;
-  /** Color communicates *what kind of evidence* motivated this edge, so its
-   * family follows the target node rather than a fixed color. */
   familyFromTarget?: boolean;
 }
 
 const EDGE_TABLE: Record<string, EdgeSpec> = {
   MANAGES: { label: "manages", family: "gray" },
   WORKED_WITH: { label: "worked with", family: "gray" },
-  // Color follows the target - a relationship_status memory claim (blue) or
-  // a creator/publisher (teal/rose) - so the edge visually previews what
-  // it's about, same as MOTIVATED_BY below.
   HAS_RELATIONSHIP: { label: "has relationship", familyFromTarget: true },
   HAS_CAMPAIGN: { label: "has campaign", family: "gray" },
   APPLIES_TO: { label: "applies to", family: "gray" },

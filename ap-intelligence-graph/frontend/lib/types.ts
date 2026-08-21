@@ -1,6 +1,3 @@
-// Mirrors backend/app/schemas.py. Kept hand-in-sync deliberately (no codegen)
-// since the API surface is small and stable for the prototype.
-
 export type ClaimStatus =
   | "active"
   | "superseded"
@@ -115,9 +112,6 @@ export interface ClientBrief {
   summary: string;
 }
 
-// Constructed deterministically on the backend from retrieved DB rows - see
-// backend/app/memory/retrieval.py. The frontend renders these fields
-// directly; it must never parse `evidence_brief` prose to reconstruct them.
 export interface CommercialAsk {
   proposed_fee: number | null;
   prior_fee: number | null;
@@ -187,10 +181,6 @@ export interface RecommendationResponse {
   evidence_brief: string;
 }
 
-// Constructed deterministically on the backend from retrieved DB rows - see
-// backend/app/memory/retrieval.py::build_campaign_review_context. The
-// frontend renders these fields directly; the LLM only ever sees this
-// object and never recomputes any of it.
 export interface PriorCampaignComparison {
   has_prior: boolean;
   prior_month_label: string | null;
@@ -242,8 +232,6 @@ export interface CampaignReviewResponse {
   candidate_lessons: MemoryCandidate[];
 }
 
-// Constructed deterministically on the backend from retrieved DB rows - see
-// backend/app/memory/retrieval.py::build_partner_brief_context.
 export interface PartnerIdentity {
   partner_id: string;
   name: string;
@@ -316,10 +304,6 @@ export interface PartnerBriefResponse {
   planning_implications: string[];
 }
 
-// Constructed deterministically on the backend from retrieved DB rows - see
-// backend/app/memory/retrieval.py::build_memory_history. A deliberately
-// separate retrieval mode from every other *Evidence type above - this is
-// the only one allowed to include superseded/needs_review claims.
 export interface MemoryHistoryEntry {
   claim_id: string;
   subject_type: string;
@@ -374,13 +358,9 @@ export interface WhatChangedSummary {
   changed_dimensions: ChangedDimension[];
 }
 
-// Constructed deterministically on the backend from retrieved DB rows - see
-// backend/app/memory/scenario_rules.py + retrieval.py::build_scenario_comparison_context.
-// The LLM only ever narrates/chooses among these; it never builds or
-// re-rates them.
 export interface RenewalScenario {
   id: string;
-  type: string; // "flat_fee" | "hybrid" | "do_not_renew"
+  type: string;
   label: string;
   base_fee: number;
   performance_bonus_pct: number;
@@ -429,18 +409,12 @@ export interface ScenarioComparisonResponse {
   confidence: number;
 }
 
-// Constructed deterministically on the backend from retrieved DB rows - see
-// backend/app/memory/retrieval.py::build_planning_context. See
-// PlanProposalResponse below for the full "proposed, never persisted"
-// governance boundary.
 export interface PlanningClientContext {
   client_id: string;
   client_name: string;
   current_strategy: ClientMemoryItem[];
 }
 
-// A previously-generated ScenarioComparisonResponse carried into planning
-// via "Use in plan" - see ScenarioComparisonPanel's onUseInPlan.
 export interface ScenarioComparisonRef {
   partner_id: string;
   preferred_scenario_id: string;
@@ -477,10 +451,6 @@ export type PlannedActionType = "renew" | "renegotiate" | "test" | "expand" | "p
 export type PlannedActionStatus = "approved" | "in_progress" | "completed" | "cancelled";
 export type PlanStatus = "draft" | "approved" | "active" | "completed" | "archived";
 
-// API-response state only (spec Phase 6 Sec.29) - never itself persisted.
-// Every id here has already been intersected against PlanningContext by the
-// backend (app/agents/plan_agent.py + app/memory/planning_rules.py) before
-// this reaches the frontend.
 export interface ProposedPlannedAction {
   temp_id: string;
   partner_id: string;
@@ -524,8 +494,6 @@ export interface PlanCreateRequest {
   actions: PlannedActionCreate[];
 }
 
-// Persisted, canonical state - see PlanProposalResponse above for the
-// deliberately separate ephemeral/proposed counterpart of this type.
 export interface PlannedActionOut {
   id: string;
   plan_id: string;
@@ -655,7 +623,6 @@ export interface Partner {
   name: string;
 }
 
-// Demo-only - see backend/app/routers/demo.py.
 export interface DemoResetResponse {
   status: string;
   demo_only: boolean;

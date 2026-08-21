@@ -40,15 +40,6 @@ function Bullets({ items, color }: { items: string[]; color?: string }) {
   );
 }
 
-/**
- * Renders backend/app/schemas.py::CampaignReviewEvidence (deterministic,
- * app/memory/retrieval.py::build_campaign_review_context) plus the bounded
- * review agent's own prose (summary/what_worked/what_is_uncertain/
- * planning_implications) - never the other way around. Candidate lessons
- * are rendered separately by ChatPanel via the existing CandidateMemoryReview
- * component (spec Phase 2: reuse the existing review UX, not a second
- * approval system), so this panel stops after PLANNING IMPLICATIONS.
- */
 export function CampaignReviewPanel({
   evidence,
   summary,

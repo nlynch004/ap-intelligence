@@ -1,6 +1,3 @@
-"""Memory extraction agent (spec Sec.21). Input: a message + entity context.
-Output: candidate structured claims. Never writes to the database."""
-
 from app.llm.factory import call_with_fallback
 
 

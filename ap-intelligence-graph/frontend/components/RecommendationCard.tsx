@@ -4,9 +4,6 @@ import { ACCENT, SURFACE, TEXT, sentenceCase } from "@/lib/design";
 import type { Decision, RecommendationResponse, SimulateOutcomeResponse } from "@/lib/types";
 import { DecisionEvidencePanel } from "./DecisionEvidencePanel";
 
-// Simulated-outcome metrics (backend/app/routers/decisions.py::simulate_outcome)
-// mix dollar amounts, a percentage, and plain status strings in one dict -
-// format each accordingly instead of dumping the raw value.
 const MONEY_METRIC_KEYS = new Set(["attributed_revenue", "verified_new_customer_revenue", "base_fee"]);
 const PERCENT_METRIC_KEYS = new Set(["performance_bonus_pct"]);
 
